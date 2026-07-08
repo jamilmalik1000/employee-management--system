@@ -9,19 +9,17 @@ export default function DashboardLayout({
 }) {
   return (
     <ProtectedRoute>
-      <div className="flex h-screen bg-gray-50">
-        {/* Sidebar - Hidden on mobile, visible on lg+ */}
-        <div className="hidden lg:block">
+      <div className="flex h-screen overflow-hidden bg-slate-100">
+        {/* Sidebar */}
+        <div className="hidden lg:flex lg:flex-shrink-0">
           <Sidebar />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Main column */}
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Navbar />
-
-          {/* Main Content Area with padding and max-width constraint */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gray-50">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
               {children}
             </div>
           </main>

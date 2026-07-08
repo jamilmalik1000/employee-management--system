@@ -1,24 +1,22 @@
 import type { Metadata } from "next";
-import "./globals.css";
-
+import { Inter } from "next/font/google";
+import './globals.css';
 import { AuthProvider } from "@/Context/AuthContext";
 
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+
 export const metadata: Metadata = {
-  title: "ERP System",
-  description: "Role Based ERP",
+  title: "EMS — Employee Management System",
+  description: "Role-based Employee Management System",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
