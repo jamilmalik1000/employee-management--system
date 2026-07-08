@@ -1,27 +1,37 @@
-export const ROLE_PERMISSIONS = {
-  admin: [
-    "dashboard",
-    "employees",
-    "departments",
-    "attendance",
-    "leaves",
-    "users",
-    "settings",
-  ],
+// export const ROLE_PERMISSIONS = {
+//   admin: [
+//     "dashboard",
+//     "employees",
+//     "departments",
+//     "attendance",
+//     "leaves",
+//     "users",
+//     "settings",
+//   ],
 
-  hr: [
-    "dashboard",
-    "employees",
-    "departments",
-    "attendance",
-    "leaves",
-    "profile",
-  ],
+//   hr: [
+//     "dashboard",
+//     "employees",
+//     "departments",
+//     "attendance",
+//     "leaves",
+//     "profile",
+//   ],
 
-  employee: [
-    "dashboard",
-    "attendance",
-    "leaves",
-    "profile",
-  ],
-};
+//   employee: [
+//     "dashboard",
+//     "attendance",
+//     "leaves",
+//     "profile",
+//   ],
+// };
+export const AVAILABLE_PERMISSIONS = [
+  "Dashboard",
+  "Users",
+  "Employees",
+  "Departments",
+  "Attendance",
+  "Leaves",
+  "Reports",
+  "Settings",
+];
