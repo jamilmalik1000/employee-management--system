@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Search } from "lucide-react";
 import UserTable from "@/components/Users/UserTable";
 import UserModal from "@/components/Users/UserModal";
 import DeleteUserModal from "@/components/Users/DeleteUserModal";
+import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
 
 export interface User {
   id: string;
@@ -25,6 +26,7 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<User>(emptyUser);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [search, setSearch] = useState("");
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -46,6 +48,19 @@ export default function UsersPage() {
 
   const activeCount   = users.filter((u) => u.isActive).length;
   const deptCount     = new Set(users.map((u) => u.department).filter(Boolean)).size;
+
+  const filteredUsers = useMemo(() => {
+    const keyword = search.toLowerCase();
+    return users.filter((user) => {
+      const matchesSearch =
+        user.name.toLowerCase().includes(keyword) ||
+        user.email.toLowerCase().includes(keyword) ||
+        user.role.toLowerCase().includes(keyword) ||
+        user.department.toLowerCase().includes(keyword) ||
+        user.employeeId.toLowerCase().includes(keyword);
+      return matchesSearch;
+    });
+  }, [users, search]);
 
   return (
     <div className="page-root">
@@ -84,8 +99,33 @@ export default function UsersPage() {
         ))}
       </div>
 
+      {/* Filters */}
+      <div
+        className="card"
+        style={{
+          padding: "1.25rem 1.5rem",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "0.875rem",
+          alignItems: "center",
+        }}
+      >
+        <div style={inputWrap}>
+          <Search size={14} style={iconStyle} />
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={inputBase}
+            onFocus={focusIn}
+            onBlur={focusOut}
+          />
+        </div>
+      </div>
+
       {/* Table */}
-      <UserTable users={users} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
+      <UserTable users={filteredUsers} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
 
       {/* Modals */}
       <UserModal

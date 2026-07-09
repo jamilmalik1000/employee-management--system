@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ShieldCheck, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ShieldCheck, Plus, Search } from "lucide-react";
 import RoleTable from "@/components/roles/RoleTable";
 import RoleModal, { Role } from "@/components/roles/RoleModal";
 import DeleteRoleModal from "@/components/roles/DeleteRoleModal";
 import PermissionGuard from "@/components/PermissionGuard";
+import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
 
 export default function RolesPage() {
   const [roles, setRoles]           = useState<Role[]>([]);
@@ -13,6 +14,7 @@ export default function RolesPage() {
   const [modalOpen, setModalOpen]   = useState(false);
   const [editRole, setEditRole]     = useState<Role | null>(null);
   const [deleteRole, setDeleteRole] = useState<Role | null>(null);
+  const [search, setSearch] = useState("");
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -39,6 +41,27 @@ export default function RolesPage() {
     if (typeof raw === "object") return Object.values(raw as Record<string, boolean>).filter(Boolean).length;
     return 0;
   }
+
+  const filteredRoles = useMemo(() => {
+    const keyword = search.toLowerCase();
+    return roles.filter((role) => {
+      const name = (role.name || "").toLowerCase();
+      const description = ((role as Record<string, unknown>)["description"] || (role as Record<string, unknown>)["Description"] || "").toString().toLowerCase();
+      const perms = (() => {
+        const raw = (role as Record<string, unknown>)["permissions"] ?? (role as Record<string, unknown>)["Permissions"];
+        if (Array.isArray(raw)) return raw.map((k) => String(k).toLowerCase()).join(" ");
+        if (raw && typeof raw === "object") return Object.keys(raw as Record<string, boolean>).join(" ").toLowerCase();
+        return "";
+      })();
+
+      return (
+        name.includes(keyword) ||
+        description.includes(keyword) ||
+        perms.includes(keyword)
+      );
+    });
+  }, [roles, search]);
+
   const totalPerms = roles.reduce((acc, r) => acc + countPerms(r), 0);
 
   return (
@@ -90,8 +113,33 @@ export default function RolesPage() {
           ))}
         </div>
 
+        {/* Filters */}
+        <div
+          className="card"
+          style={{
+            padding: "1.25rem 1.5rem",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "0.875rem",
+            alignItems: "center",
+          }}
+        >
+          <div style={inputWrap}>
+            <Search size={14} style={iconStyle} />
+            <input
+              type="text"
+              placeholder="Search roles..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={inputBase}
+              onFocus={focusIn}
+              onBlur={focusOut}
+            />
+          </div>
+        </div>
+
         {/* Table */}
-        <RoleTable roles={roles} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
+        <RoleTable roles={filteredRoles} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
 
       </div>
 
