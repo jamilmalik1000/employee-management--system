@@ -23,6 +23,32 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // ── Duplicate checks (exclude current user's own doc) ────────────────
+    const usersRef = adminDb.collection("users");
+
+    // 1. Duplicate email
+    const emailSnap = await usersRef.where("email", "==", email).get();
+    const emailTaken = emailSnap.docs.some((d) => d.id !== uid);
+    if (emailTaken) {
+      return NextResponse.json(
+        { success: false, message: "A user with this email already exists." },
+        { status: 409 }
+      );
+    }
+
+    // 2. Duplicate employeeId (only if provided)
+    if (employeeId?.trim()) {
+      const empSnap = await usersRef.where("employeeId", "==", employeeId.trim()).get();
+      const empTaken = empSnap.docs.some((d) => d.id !== uid);
+      if (empTaken) {
+        return NextResponse.json(
+          { success: false, message: "A user with this Employee ID already exists." },
+          { status: 409 }
+        );
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // Prepare Authentication update
     const authData: {
       email?: string;

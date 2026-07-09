@@ -4,15 +4,16 @@ import { useState } from "react";
 import { useAuth } from "@/Context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
-
+import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [email,    setEmail]    = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [openForgot, setOpenForgot] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,13 +31,13 @@ export default function LoginPage() {
   /* shared focus/blur handlers */
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = "#6366f1";
-    e.target.style.boxShadow   = "0 0 0 3px rgba(99,102,241,0.12)";
-    e.target.style.background  = "#fff";
+    e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12)";
+    e.target.style.background = "#fff";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = "#e2e8f0";
-    e.target.style.boxShadow   = "none";
-    e.target.style.background  = "#f8faff";
+    e.target.style.boxShadow = "none";
+    e.target.style.background = "#f8faff";
   };
 
   return (
@@ -221,6 +222,18 @@ export default function LoginPage() {
               />
             </div>
           </div>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              onClick={() => setOpenForgot(true)}
+              style={{ fontSize: "0.875rem", color: "#6366f1", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+            >
+              Forgot Password?
+            </button>
+          </div>
+
 
           {/* Submit */}
           <button
@@ -270,12 +283,16 @@ export default function LoginPage() {
           </button>
 
           {/* Footer hint */}
-          <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>
+          {/* <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>
             Demo: <span style={{ color: "#6366f1", fontWeight: 600 }}>admin@example.com</span>
-          </p>
+          </p> */}
 
         </form>
       </div>
+      <ForgotPasswordModal
+  open={openForgot}
+  onClose={() => setOpenForgot(false)}
+/>
     </div>
   );
 }
