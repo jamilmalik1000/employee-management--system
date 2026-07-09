@@ -21,7 +21,7 @@ export default function DeleteRoleModal({ open, onClose, role, refreshRoles }: P
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/role/delete", {
+      const res = await fetch("/api/roles/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: role.id }),

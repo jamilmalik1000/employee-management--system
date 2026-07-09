@@ -73,7 +73,7 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
     setError("");
 
     try {
-      const url    = isEdit ? "/api/role/update" : "/api/role/create";
+      const url    = isEdit ? "/api/roles/update" : "/api/roles/create";
       const method = isEdit ? "PUT" : "POST";
       const body   = isEdit
         ? { id: editRole!.id, name, description, permissions }

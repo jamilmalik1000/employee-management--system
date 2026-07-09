@@ -1,181 +1,146 @@
 "use client";
 
+import { Pencil, Trash2, Users } from "lucide-react";
 import { User } from "@/app/dashboard/users/page";
 
-interface UserTableProps {
+interface Props {
   users: User[];
   loading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
 }
 
-export default function UserTable({
-  users,
-  loading,
-  onEdit,
-  onDelete,
-}: UserTableProps) {
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl shadow p-8 text-center">
-        <p className="text-gray-500 text-lg">Loading users...</p>
-      </div>
-    );
-  }
+const roleMeta: Record<string, { color: string; bg: string; border: string }> = {
+  admin:    { color: "#dc2626", bg: "rgba(220,38,38,0.07)",   border: "rgba(220,38,38,0.15)"   },
+  hr:       { color: "#2563eb", bg: "rgba(37,99,235,0.07)",   border: "rgba(37,99,235,0.15)"   },
+  employee: { color: "#059669", bg: "rgba(5,150,105,0.07)",   border: "rgba(5,150,105,0.15)"   },
+};
 
-  if (!users.length) {
-    return (
-      <div className="bg-white rounded-xl shadow p-8 text-center">
-        <h2 className="text-2xl font-semibold">No Users Found</h2>
-        <p className="text-gray-500 mt-2">
-          Click <b>Add User</b> to create your first user.
-        </p>
-      </div>
-    );
-  }
+const defaultMeta = { color: "#6366f1", bg: "rgba(99,102,241,0.07)", border: "rgba(99,102,241,0.15)" };
 
+export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
 
-      <div className="overflow-x-auto">
-
-        <table className="min-w-full">
-
-          <thead className="bg-slate-100">
-
-            <tr className="text-left text-gray-700">
-
-              <th className="px-6 py-4">Employee ID</th>
-
-              <th className="px-6 py-4">Name</th>
-
-              <th className="px-6 py-4">Email</th>
-
-              <th className="px-6 py-4">Role</th>
-
-              <th className="px-6 py-4">Department</th>
-
-              <th className="px-6 py-4">Status</th>
-
-              <th className="px-6 py-4 text-center">
-                Actions
-              </th>
-
-            </tr>
-
-          </thead>
-
-          <tbody className="divide-y divide-gray-200 my-5">
-
-            {users.map((user: any) => {
-
-              const employeeId =
-                user.employeeId ||
-                user.employeeID ||
-                user.EmployeeID ||
-                "-";
-
-              const department =
-                user.department ||
-                user.Department ||
-                "-";
-
-              const isActive =
-                user.isActive ??
-                user.IsActive ??
-                false;
-
-              const role =
-                (user.role || "employee").toLowerCase();
-
-              return (
-
-                <tr
-                  key={user.id}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-
-                  <td className="px-6 py-4 font-medium">
-                    {employeeId}
-                  </td>
-
-                  <td className="px-6 py-4">
-                    {user.name}
-                  </td>
-
-                  <td className="px-6 py-4">
-                    {user.email}
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold
-                        ${
-                          role === "admin"
-                            ? "bg-red-100 text-red-700"
-                            : role === "hr"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                    >
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </span>
-
-                  </td>
-
-                  <td className="px-6 py-4">
-                    {department}
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {isActive ? "Active" : "Inactive"}
-                    </span>
-
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <div className="flex justify-center gap-2">
-
-                      <button
-                        onClick={() => onEdit(user)}
-                        className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-5 mt-4"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => onDelete(user)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-6 py-5 mt-4"
-                      >
-                        Delete
-                      </button>
-
-                    </div>
-
-                  </td>
-
-                </tr>
-
-              );
-
-            })}
-
-          </tbody>
-
-        </table>
-
+      {/* Header bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.125rem 1.5rem", borderBottom: "1px solid #f0f2f8", background: "#fafbff" }}>
+        <h2 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#1e293b", margin: 0 }}>All Users</h2>
+        {!loading && (
+          <span style={{ fontSize: "0.75rem", color: "#64748b", background: "#f1f5f9", padding: "0.25rem 0.75rem", borderRadius: "9999px", fontWeight: 600 }}>
+            {users.length} {users.length === 1 ? "user" : "users"}
+          </span>
+        )}
       </div>
 
+      {/* Loading */}
+      {loading ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "5rem 1rem", gap: "0.75rem" }}>
+          <div style={{ width: "2.25rem", height: "2.25rem", border: "3px solid #e2e8f0", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ fontSize: "0.875rem", color: "#94a3b8" }}>Loading users…</p>
+        </div>
+      ) : users.length === 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "5rem 1rem", gap: "0.75rem" }}>
+          <Users size={48} color="#e2e8f0" />
+          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>No users yet</p>
+          <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>Click "Add User" to create the first one.</p>
+        </div>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+            <thead>
+              <tr style={{ background: "#f8faff", borderBottom: "1px solid #f0f2f8" }}>
+                {["Employee ID", "Name", "Email", "Role", "Department", "Status", "Actions"].map((col) => (
+                  <th
+                    key={col}
+                    style={{ padding: "0.875rem 1.5rem", textAlign: col === "Actions" ? "center" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}
+                  >
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user, i) => {
+                const role = (user.role || "employee").toLowerCase();
+                const meta = roleMeta[role] ?? defaultMeta;
+                const isActive = user.isActive ?? false;
+
+                return (
+                  <tr
+                    key={user.id}
+                    style={{ borderBottom: i < users.length - 1 ? "1px solid #f0f2f8" : "none", transition: "background 0.1s" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#fafbff")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    {/* Employee ID */}
+                    <td style={{ padding: "1rem 1.5rem", fontWeight: 600, color: "#475569" }}>
+                      {user.employeeId || "—"}
+                    </td>
+
+                    {/* Name */}
+                    <td style={{ padding: "1rem 1.5rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
+                        <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.75rem", fontWeight: 700, color: "#6366f1" }}>
+                          {user.name?.charAt(0)?.toUpperCase() || "?"}
+                        </div>
+                        <span style={{ fontWeight: 700, color: "#1e293b" }}>{user.name}</span>
+                      </div>
+                    </td>
+
+                    {/* Email */}
+                    <td style={{ padding: "1rem 1.5rem", color: "#64748b" }}>
+                      {user.email}
+                    </td>
+
+                    {/* Role badge */}
+                    <td style={{ padding: "1rem 1.5rem" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: meta.bg, border: `1px solid ${meta.border}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: meta.color, textTransform: "capitalize" }}>
+                        {role}
+                      </span>
+                    </td>
+
+                    {/* Department */}
+                    <td style={{ padding: "1rem 1.5rem", color: "#64748b" }}>
+                      {user.department || <span style={{ color: "#cbd5e1" }}>—</span>}
+                    </td>
+
+                    {/* Status badge */}
+                    <td style={{ padding: "1rem 1.5rem" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: isActive ? "rgba(5,150,105,0.07)" : "rgba(239,68,68,0.07)", border: `1px solid ${isActive ? "rgba(5,150,105,0.15)" : "rgba(239,68,68,0.15)"}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: isActive ? "#059669" : "#ef4444" }}>
+                        {isActive ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ padding: "1rem 1.5rem", textAlign: "center" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                        <button
+                          onClick={() => onEdit(user)}
+                          title="Edit user"
+                          style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.07)", color: "#6366f1", cursor: "pointer" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.15)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.07)")}
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(user)}
+                          title="Delete user"
+                          style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(239,68,68,0.15)", background: "rgba(239,68,68,0.07)", color: "#ef4444", cursor: "pointer" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.15)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.07)")}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

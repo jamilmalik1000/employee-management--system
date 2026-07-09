@@ -82,24 +82,32 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
 
                   {/* Permissions */}
                   <td style={{ padding: "1rem 1.5rem" }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
-                      {(role.permissions ?? []).slice(0, 5).map((key) => {
-                        const p = permLabel(key);
-                        return p ? (
-                          <span
-                            key={key}
-                            style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.625rem", background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.15)", borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: "#4f46e5" }}
-                          >
-                            {p.icon} {p.label}
-                          </span>
-                        ) : null;
-                      })}
-                      {(role.permissions ?? []).length > 5 && (
-                        <span style={{ padding: "0.2rem 0.625rem", background: "#f1f5f9", borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}>
-                          +{role.permissions.length - 5} more
-                        </span>
-                      )}
-                    </div>
+                    {(() => {
+                      const perms = Array.isArray(role.permissions) ? role.permissions : [];
+                      return (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
+                          {perms.slice(0, 5).map((key) => {
+                            const p = permLabel(key);
+                            return p ? (
+                              <span
+                                key={key}
+                                style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.625rem", background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.15)", borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: "#4f46e5" }}
+                              >
+                                {p.icon} {p.label}
+                              </span>
+                            ) : null;
+                          })}
+                          {perms.length > 5 && (
+                            <span style={{ padding: "0.2rem 0.625rem", background: "#f1f5f9", borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}>
+                              +{perms.length - 5} more
+                            </span>
+                          )}
+                          {perms.length === 0 && (
+                            <span style={{ fontSize: "0.8125rem", color: "#cbd5e1" }}>No permissions</span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
 
                   {/* Actions */}

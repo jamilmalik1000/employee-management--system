@@ -49,7 +49,7 @@ export default function UserForm({ refreshUsers }: UserFormProps) {
   const fetchRoles = async () => {
     setRolesLoading(true);
     try {
-      const res  = await fetch("/api/role/list");
+      const res  = await fetch("/api/roles/list");
       const data = await res.json();
       const list: Role[] = Array.isArray(data) ? data : [];
       setRoles(list);
