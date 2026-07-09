@@ -156,8 +156,8 @@ export default function UserRow({ user, refreshUsers }: UserRowProps) {
 
       {showDelete && (
         <DeleteUserModal
-          userId={user.id}
-          userName={user.name}
+          open={showDelete}
+          user={user}
           onClose={() => setShowDelete(false)}
           refreshUsers={refreshUsers}
         />

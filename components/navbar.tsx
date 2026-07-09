@@ -41,6 +41,7 @@ export default function Navbar() {
         WebkitBackdropFilter: "blur(12px)",
         borderBottom: "1px solid #e8ecf4",
         boxShadow: "0 1px 0 0 rgba(0,0,0,0.04)",
+        paddingLeft: "1.5rem",
       }}
     >
       {/* Left — page title */}

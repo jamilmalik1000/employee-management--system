@@ -52,7 +52,7 @@ export default function RolesPage() {
         </div>
       }
     >
-      <div className="page-root">
+      <div className="page-root" style={{ paddingLeft: "1.5rem",paddingRight: "1.5rem", paddingTop: "2rem", paddingBottom: "2rem" }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
