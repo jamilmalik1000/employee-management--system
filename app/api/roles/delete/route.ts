@@ -25,6 +25,14 @@ export async function DELETE(req: NextRequest) {
     const roleData = roleDoc.data();
     const roleName = roleData?.name;
 
+    // Prevent deleting the admin role
+    if (roleName?.toLowerCase() === "admin") {
+      return NextResponse.json(
+        { message: "The Admin role is protected and cannot be deleted." },
+        { status: 403 }
+      );
+    }
+
     // Check if any user is using this role
     const users = await adminDb
       .collection("users")

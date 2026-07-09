@@ -18,6 +18,8 @@ export default function DeleteRoleModal({ open, onClose, role, refreshRoles }: P
 
   if (!open || !role) return null;
 
+  const isAdmin = role.name?.toLowerCase() === "admin";
+
   const handleDelete = async () => {
     setLoading(true);
     setError("");
@@ -86,6 +88,14 @@ export default function DeleteRoleModal({ open, onClose, role, refreshRoles }: P
             </p>
           </div>
 
+          {isAdmin && (
+            <div style={{ marginTop: "1rem", padding: "0.875rem 1rem", background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "0.75rem" }}>
+              <p style={{ fontSize: "0.875rem", color: "#4f46e5", fontWeight: 600, margin: 0 }}>
+                🔒 The Admin role is protected and cannot be deleted.
+              </p>
+            </div>
+          )}
+
           {error && (
             <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
               {error}
@@ -107,8 +117,8 @@ export default function DeleteRoleModal({ open, onClose, role, refreshRoles }: P
           </button>
           <button
             onClick={handleDelete}
-            disabled={loading}
-            style={{ flex: 1, padding: "0.875rem 1rem", fontSize: "0.9375rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", background: loading ? "#fca5a5" : "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "0 4px 14px rgba(239,68,68,0.3)" }}
+            disabled={loading || isAdmin}
+            style={{ flex: 1, padding: "0.875rem 1rem", fontSize: "0.9375rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", background: loading || isAdmin ? "#fca5a5" : "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff", cursor: loading || isAdmin ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "0 4px 14px rgba(239,68,68,0.3)", opacity: isAdmin ? 0.5 : 1 }}
           >
             {loading ? <><Loader2 size={15} className="animate-spin" /> Deleting…</> : "Delete Role"}
           </button>

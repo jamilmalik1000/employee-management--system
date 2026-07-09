@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/Context/AuthContext";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
+import { Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [openForgot, setOpenForgot] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -199,14 +200,14 @@ export default function LoginPage() {
                 }}
               />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={{
                   width: "100%",
-                  padding: "0.8125rem 0.875rem 0.8125rem 2.625rem",
+                  padding: "0.8125rem 2.5rem 0.8125rem 2.625rem",
                   fontSize: "0.9375rem",
                   fontFamily: "inherit",
                   background: "#f8faff",
@@ -220,6 +221,13 @@ export default function LoginPage() {
                 onFocus={onFocus}
                 onBlur={onBlur}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 0, display: "flex", alignItems: "center" }}
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>

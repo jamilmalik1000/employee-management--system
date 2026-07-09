@@ -14,6 +14,14 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    const roleDoc = await adminDb.collection("roles").doc(id).get();
+    if (roleDoc.data()?.name?.toLowerCase() === "admin") {
+      return NextResponse.json(
+        { message: "The Admin role is protected and cannot be edited." },
+        { status: 403 }
+      );
+    }
+
     await adminDb.collection("roles").doc(id).update({
       name,
       description,

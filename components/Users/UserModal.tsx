@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   X, Plus, User, Mail, Lock, Building2, BadgeCheck,
-  ChevronDown, ShieldCheck, AlertCircle, Loader2, ToggleLeft,
+  ChevronDown, ShieldCheck, AlertCircle, Loader2, ToggleLeft, Eye, EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { User as UserType } from "@/app/dashboard/users/page";
@@ -52,6 +52,7 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
 
   const [form, setForm]       = useState<UserType>(user);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
 
@@ -64,6 +65,7 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
   useEffect(() => {
     setForm(user);
     setPassword("");
+    setShowPassword(false);
     setError("");
   }, [user]);
 
@@ -206,11 +208,18 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
               <div style={inputWrap}>
                 <Lock size={14} style={iconStyle} />
                 <input
-                  type="password" placeholder={isEdit ? "••••••••" : "Min. 8 characters"}
+                  type={showPassword ? "text" : "password"} placeholder={isEdit ? "••••••••" : "Min. 8 characters"}
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   required={!isEdit}
-                  style={inputBase} onFocus={focusIn} onBlur={focusOut}
+                  style={{ ...inputBase, paddingRight: "2.5rem" }} onFocus={focusIn} onBlur={focusOut}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((p) => !p)}
+                  style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 0, display: "flex", alignItems: "center" }}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
             </div>
 
