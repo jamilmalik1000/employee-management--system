@@ -5,15 +5,8 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/Context/AuthContext";
 import { useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  CalendarCheck,
-  CalendarDays,
-  UserCog,
-  UserCircle,
-  ShieldCheck,
-  LogOut,
+  LayoutDashboard, Users, Building2, CalendarCheck,
+  CalendarDays, UserCog, UserCircle, ShieldCheck, LogOut, X,
 } from "lucide-react";
 
 const ALL_NAV_ITEMS = [
@@ -27,41 +20,45 @@ const ALL_NAV_ITEMS = [
   { href: "/dashboard/profile",     label: "Profile",        icon: UserCircle,      permission: "profile"     },
 ];
 
-export default function Sidebar() {
+interface Props {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export default function Sidebar({ mobileOpen = false, onMobileClose }: Props) {
   const { role, user, logout, permissions } = useAuth();
   const pathname = usePathname();
   const router   = useRouter();
 
-  const isAdmin   = role?.toLowerCase() === "admin";
-  const navItems   = isAdmin ? ALL_NAV_ITEMS : ALL_NAV_ITEMS.filter((item) => permissions.includes(item.permission));
+  const isAdmin  = role?.toLowerCase() === "admin";
+  const navItems = isAdmin ? ALL_NAV_ITEMS : ALL_NAV_ITEMS.filter((item) => permissions.includes(item.permission));
   const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
   const name      = user?.displayName || user?.email?.split("@")[0] || "User";
   const initials  = name.slice(0, 2).toUpperCase();
 
   const handleLogout = () => { logout(); router.push("/login"); };
+  const handleNav    = () => { onMobileClose?.(); };
 
-  return (
-    <aside
-      style={{
-        width: "240px",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        flexShrink: 0,
-        overflow: "hidden",
-        background: "linear-gradient(180deg, #0f0f23 0%, #13132e 60%, #0f172a 100%)",
-        borderRight: "1px solid rgba(255,255,255,0.06)",
-      }}
-    >
+  const sidebarContent = (
+    <aside style={{ width: "240px", height: "100%", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden", background: "linear-gradient(180deg, #0f0f23 0%, #13132e 60%, #0f172a 100%)", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+
       {/* Brand */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "1.375rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ width: "2.125rem", height: "2.125rem", borderRadius: "0.625rem", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.875rem", color: "#fff", flexShrink: 0 }}>
-          E
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.375rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ width: "2.125rem", height: "2.125rem", borderRadius: "0.625rem", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.875rem", color: "#fff", flexShrink: 0 }}>
+            E
+          </div>
+          <div style={{ lineHeight: 1.3 }}>
+            <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#fff", margin: 0 }}>EMS</p>
+            <p style={{ fontSize: "0.6875rem", color: "#4b5563", margin: 0 }}>Employee System</p>
+          </div>
         </div>
-        <div style={{ lineHeight: 1.3 }}>
-          <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#fff", margin: 0 }}>EMS</p>
-          <p style={{ fontSize: "0.6875rem", color: "#4b5563", margin: 0 }}>Employee System</p>
-        </div>
+        {/* Close button — mobile only */}
+        {onMobileClose && (
+          <button onClick={onMobileClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "0.5rem", width: "2rem", height: "2rem", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9ca3af" }}>
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -69,7 +66,6 @@ export default function Sidebar() {
         <p style={{ fontSize: "0.625rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#374151", padding: "0 0.625rem", marginBottom: "0.5rem" }}>
           Navigation
         </p>
-
         {navItems.map((item) => {
           const Icon     = item.icon;
           const isActive = pathname === item.href;
@@ -77,15 +73,8 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              style={{
-                display: "flex", alignItems: "center", gap: "0.75rem",
-                padding: "0.625rem 0.75rem", borderRadius: "0.625rem",
-                fontSize: "0.875rem", fontWeight: isActive ? 600 : 500,
-                textDecoration: "none", transition: "all 0.15s",
-                color: isActive ? "#fff" : "#9ca3af",
-                background: isActive ? "linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.12))" : "transparent",
-                border: isActive ? "1px solid rgba(99,102,241,0.28)" : "1px solid transparent",
-              }}
+              onClick={handleNav}
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem", borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: isActive ? 600 : 500, textDecoration: "none", transition: "all 0.15s", color: isActive ? "#fff" : "#9ca3af", background: isActive ? "linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.12))" : "transparent", border: isActive ? "1px solid rgba(99,102,241,0.28)" : "1px solid transparent" }}
             >
               <Icon size={16} style={{ flexShrink: 0, color: isActive ? "#a5b4fc" : "#6b7280" }} />
               <span style={{ flex: 1 }}>{item.label}</span>
@@ -117,5 +106,29 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden lg:flex lg:flex-shrink-0" style={{ height: "100vh" }}>
+        {sidebarContent}
+      </div>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={onMobileClose}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 40 }}
+          />
+          {/* Drawer */}
+          <div className="animate-slideDown" style={{ position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 50 }}>
+            {sidebarContent}
+          </div>
+        </>
+      )}
+    </>
   );
 }

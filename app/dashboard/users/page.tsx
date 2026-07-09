@@ -48,7 +48,7 @@ export default function UsersPage() {
   const deptCount     = new Set(users.map((u) => u.department).filter(Boolean)).size;
 
   return (
-    <div className="page-root" style={{ paddingLeft: "1.5rem",paddingRight: "1.5rem", paddingTop: "2rem", paddingBottom: "2rem" }}>
+    <div className="page-root">
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>

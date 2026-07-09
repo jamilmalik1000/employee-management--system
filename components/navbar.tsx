@@ -2,25 +2,24 @@
 
 import { useAuth } from "@/Context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, Search, LogOut } from "lucide-react";
+import { Bell, LogOut, Menu } from "lucide-react";
 
 const pageTitles: Record<string, { title: string; sub: string }> = {
-  "/dashboard":             { title: "Dashboard",      sub: "Welcome back — here's your overview" },
-  "/dashboard/employees":   { title: "Employees",      sub: "Manage your workforce" },
-  "/dashboard/departments": { title: "Departments",    sub: "Organise teams and departments" },
-  "/dashboard/attendence":  { title: "Attendance",     sub: "Track daily attendance records" },
-  "/dashboard/leaves":      { title: "Leave Requests", sub: "Review and manage leave requests" },
-  "/dashboard/users":       { title: "Users",          sub: "Manage system users and roles" },
-  "/dashboard/profile":     { title: "Profile",        sub: "Your account information" },
+  "/dashboard":             { title: "Dashboard",        sub: "Welcome back — here's your overview"   },
+  "/dashboard/employees":   { title: "Employees",        sub: "Manage your workforce"                 },
+  "/dashboard/departments": { title: "Departments",      sub: "Organise teams and departments"        },
+  "/dashboard/attendence":  { title: "Attendance",       sub: "Track daily attendance records"        },
+  "/dashboard/leaves":      { title: "Leave Requests",   sub: "Review and manage leave requests"      },
+  "/dashboard/users":       { title: "Users",            sub: "Manage system users and roles"         },
+  "/dashboard/roles":       { title: "Roles",            sub: "Define roles and permissions"          },
+  "/dashboard/profile":     { title: "Profile",          sub: "Your account information"              },
 };
 
-const roleMeta: Record<string, { color: string }> = {
-  admin:    { color: "from-amber-500 to-orange-500" },
-  hr:       { color: "from-violet-500 to-purple-600" },
-  employee: { color: "from-indigo-500 to-blue-600" },
-};
+interface Props {
+  onMenuClick: () => void;
+}
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick }: Props) {
   const { user, logout, role } = useAuth();
   const router   = useRouter();
   const pathname = usePathname();
@@ -31,80 +30,64 @@ export default function Navbar() {
   const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
   const initials    = displayName.slice(0, 2).toUpperCase();
   const roleLabel   = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Employee";
-  const gradMeta    = roleMeta[role ?? "employee"] ?? roleMeta.employee;
 
   return (
-    <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 z-30"
-      style={{
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderBottom: "1px solid #e8ecf4",
-        boxShadow: "0 1px 0 0 rgba(0,0,0,0.04)",
-        paddingLeft: "1.5rem",
-      }}
+    <header
+      style={{ height: "3.75rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1rem", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderBottom: "1px solid #e8ecf4", boxShadow: "0 1px 0 0 rgba(0,0,0,0.04)", zIndex: 30, gap: "0.75rem" }}
     >
-      {/* Left — page title */}
-      <div className="flex flex-col justify-center">
-        <h1 className="text-base font-bold text-slate-900 leading-tight">{page.title}</h1>
-        <p className="text-xs text-slate-400 leading-tight hidden sm:block">{page.sub}</p>
+      {/* Left */}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden"
+          style={{ width: "2.25rem", height: "2.25rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid #e8ecf4", background: "#f4f6fb", color: "#475569", cursor: "pointer", flexShrink: 0 }}
+        >
+          <Menu size={18} />
+        </button>
+
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#0f172a", margin: 0, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{page.title}</h1>
+          <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} className="hidden sm:block">{page.sub}</p>
+        </div>
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-2">
-
-        {/* Search pill */}
-        <button
-          className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 cursor-pointer transition-all duration-150"
-          style={{ background: "#f4f6fb", border: "1px solid #e8ecf4" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#c7d2fe"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#e8ecf4"; }}
-        >
-          <Search size={14} />
-          <span className="text-xs pr-6">Search…</span>
-          <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-mono">⌘K</span>
-        </button>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
 
         {/* Notification bell */}
         <button
-          className="relative w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 cursor-pointer transition-colors border-none"
-          style={{ background: "#f4f6fb", border: "1px solid #e8ecf4" }}
+          style={{ position: "relative", width: "2.25rem", height: "2.25rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", background: "#f4f6fb", border: "1px solid #e8ecf4", color: "#64748b", cursor: "pointer" }}
         >
           <Bell size={16} />
-          <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-            style={{ background: "#6366f1", boxShadow: "0 0 0 2px #fff" }}
-          />
+          <span style={{ position: "absolute", top: "0.375rem", right: "0.375rem", width: "0.5rem", height: "0.5rem", borderRadius: "50%", background: "#6366f1", boxShadow: "0 0 0 2px #fff" }} />
         </button>
 
         {/* Divider */}
-        <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+        <div className="hidden sm:block" style={{ width: "1px", height: "1.5rem", background: "#e2e8f0" }} />
 
-        {/* User pill */}
+        {/* User pill — hidden on xs */}
         <div
-          className="hidden sm:flex items-center gap-2.5 rounded-xl px-3 py-2 cursor-default"
-          style={{ background: "#f4f6fb", border: "1px solid #e8ecf4" }}
+          className="hidden sm:flex"
+          style={{ alignItems: "center", gap: "0.5rem", padding: "0.375rem 0.75rem", background: "#f4f6fb", border: "1px solid #e8ecf4", borderRadius: "0.75rem" }}
         >
-          <div
-            className={`w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 bg-gradient-to-br ${gradMeta.color}`}
-          >
+          <div style={{ width: "1.75rem", height: "1.75rem", borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>
             {initials}
           </div>
-          <div className="leading-tight">
-            <p className="text-xs font-semibold text-slate-700 capitalize max-w-[120px] truncate">{displayName}</p>
-            <p className="text-[10px] text-slate-400">{roleLabel}</p>
+          <div style={{ lineHeight: 1.25 }}>
+            <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "#1e293b", margin: 0, maxWidth: "100px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</p>
+            <p style={{ fontSize: "0.6875rem", color: "#94a3b8", margin: 0, textTransform: "capitalize" }}>{roleLabel}</p>
           </div>
         </div>
 
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-500 rounded-lg cursor-pointer transition-all duration-150 border-none"
-          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.12)" }}
+          style={{ display: "flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 0.75rem", fontSize: "0.8125rem", fontWeight: 600, color: "#ef4444", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.12)", borderRadius: "0.5rem", cursor: "pointer" }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.12)"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.06)"; }}
         >
-          <LogOut size={13} />
+          <LogOut size={14} />
           <span className="hidden sm:inline">Logout</span>
         </button>
 

@@ -45,16 +45,25 @@ export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
           <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>Click "Add User" to create the first one.</p>
         </div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "640px" }}>
             <thead>
               <tr style={{ background: "#f8faff", borderBottom: "1px solid #f0f2f8" }}>
-                {["Employee ID", "Name", "Email", "Role", "Department", "Status", "Actions"].map((col) => (
+                {[
+                  { label: "Employee ID", hide: "sm" },
+                  { label: "Name",        hide: ""   },
+                  { label: "Email",       hide: "md" },
+                  { label: "Role",        hide: ""   },
+                  { label: "Department",  hide: "lg" },
+                  { label: "Status",      hide: "sm" },
+                  { label: "Actions",     hide: ""   },
+                ].map((col) => (
                   <th
-                    key={col}
-                    style={{ padding: "0.875rem 1.5rem", textAlign: col === "Actions" ? "center" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}
+                    key={col.label}
+                    className={col.hide ? `hidden ${col.hide}:table-cell` : ""}
+                    style={{ padding: "0.875rem 1rem", textAlign: col.label === "Actions" ? "center" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}
                   >
-                    {col}
+                    {col.label}
                   </th>
                 ))}
               </tr>
@@ -73,63 +82,51 @@ export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     {/* Employee ID */}
-                    <td style={{ padding: "1rem 1.5rem", fontWeight: 600, color: "#475569" }}>
+                    <td className="hidden sm:table-cell" style={{ padding: "0.875rem 1rem", fontWeight: 600, color: "#475569", whiteSpace: "nowrap" }}>
                       {user.employeeId || "—"}
                     </td>
 
                     {/* Name */}
-                    <td style={{ padding: "1rem 1.5rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
+                    <td style={{ padding: "0.875rem 1rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                         <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.75rem", fontWeight: 700, color: "#6366f1" }}>
                           {user.name?.charAt(0)?.toUpperCase() || "?"}
                         </div>
-                        <span style={{ fontWeight: 700, color: "#1e293b" }}>{user.name}</span>
+                        <span style={{ fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>{user.name}</span>
                       </div>
                     </td>
 
                     {/* Email */}
-                    <td style={{ padding: "1rem 1.5rem", color: "#64748b" }}>
+                    <td className="hidden md:table-cell" style={{ padding: "0.875rem 1rem", color: "#64748b", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {user.email}
                     </td>
 
                     {/* Role badge */}
-                    <td style={{ padding: "1rem 1.5rem" }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: meta.bg, border: `1px solid ${meta.border}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: meta.color, textTransform: "capitalize" }}>
+                    <td style={{ padding: "0.875rem 1rem" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: meta.bg, border: `1px solid ${meta.border}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: meta.color, textTransform: "capitalize", whiteSpace: "nowrap" }}>
                         {role}
                       </span>
                     </td>
 
                     {/* Department */}
-                    <td style={{ padding: "1rem 1.5rem", color: "#64748b" }}>
+                    <td className="hidden lg:table-cell" style={{ padding: "0.875rem 1rem", color: "#64748b", whiteSpace: "nowrap" }}>
                       {user.department || <span style={{ color: "#cbd5e1" }}>—</span>}
                     </td>
 
                     {/* Status badge */}
-                    <td style={{ padding: "1rem 1.5rem" }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: isActive ? "rgba(5,150,105,0.07)" : "rgba(239,68,68,0.07)", border: `1px solid ${isActive ? "rgba(5,150,105,0.15)" : "rgba(239,68,68,0.15)"}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: isActive ? "#059669" : "#ef4444" }}>
+                    <td className="hidden sm:table-cell" style={{ padding: "0.875rem 1rem" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: isActive ? "rgba(5,150,105,0.07)" : "rgba(239,68,68,0.07)", border: `1px solid ${isActive ? "rgba(5,150,105,0.15)" : "rgba(239,68,68,0.15)"}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: isActive ? "#059669" : "#ef4444", whiteSpace: "nowrap" }}>
                         {isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: "1rem 1.5rem", textAlign: "center" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                        <button
-                          onClick={() => onEdit(user)}
-                          title="Edit user"
-                          style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.07)", color: "#6366f1", cursor: "pointer" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.15)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.07)")}
-                        >
+                    <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.375rem" }}>
+                        <button onClick={() => onEdit(user)} title="Edit user" style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.07)", color: "#6366f1", cursor: "pointer" }} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.15)")} onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.07)")}>
                           <Pencil size={13} />
                         </button>
-                        <button
-                          onClick={() => onDelete(user)}
-                          title="Delete user"
-                          style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(239,68,68,0.15)", background: "rgba(239,68,68,0.07)", color: "#ef4444", cursor: "pointer" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.15)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.07)")}
-                        >
+                        <button onClick={() => onDelete(user)} title="Delete user" style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(239,68,68,0.15)", background: "rgba(239,68,68,0.07)", color: "#ef4444", cursor: "pointer" }} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.15)")} onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.07)")}>
                           <Trash2 size={13} />
                         </button>
                       </div>

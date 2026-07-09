@@ -1,29 +1,30 @@
+"use client";
+
+import { useState } from "react";
 import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
 import ProtectedRoute from "@/components/protectedroutes";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <ProtectedRoute>
-      <div className="flex h-screen overflow-hidden bg-slate-100">
-        {/* Sidebar */}
-        <div className="hidden lg:flex lg:flex-shrink-0">
-          <Sidebar />
-        </div>
+      <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f0f2f8" }}>
+
+        {/* Sidebar — desktop always visible, mobile via drawer */}
+        <Sidebar mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
 
         {/* Main column */}
-        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-          <Navbar />
-          <main className="flex-1 overflow-y-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0, overflow: "hidden" }}>
+          <Navbar onMenuClick={() => setSidebarOpen(true)} />
+          <main style={{ flex: 1, overflowY: "auto" }}>
+            <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "1.5rem 1rem" }} className="sm:px-6 lg:px-8 lg:py-8">
               {children}
             </div>
           </main>
         </div>
+
       </div>
     </ProtectedRoute>
   );

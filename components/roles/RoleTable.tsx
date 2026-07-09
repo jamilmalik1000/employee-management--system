@@ -179,16 +179,22 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
             <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>Click "Create Role" to define the first one.</p>
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "520px" }}>
               <thead>
                 <tr style={{ background: "#f8faff", borderBottom: "1px solid #f0f2f8" }}>
-                  {["Role", "Description", "Permissions", "Actions"].map((col) => (
+                  {[
+                    { label: "Role",        hide: "" },
+                    { label: "Description", hide: "md" },
+                    { label: "Permissions", hide: "" },
+                    { label: "Actions",     hide: "" },
+                  ].map((col) => (
                     <th
-                      key={col}
-                      style={{ padding: "0.875rem 1.5rem", textAlign: col === "Actions" ? "center" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}
+                      key={col.label}
+                      className={col.hide ? `hidden ${col.hide}:table-cell` : ""}
+                      style={{ padding: "0.875rem 1rem", textAlign: col.label === "Actions" ? "center" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}
                     >
-                      {col}
+                      {col.label}
                     </th>
                   ))}
                 </tr>
@@ -205,7 +211,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
                       {/* Role name */}
-                      <td style={{ padding: "1rem 1.5rem" }}>
+                      <td style={{ padding: "0.875rem 1rem" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
                           <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                             <ShieldCheck size={14} color="#6366f1" />
@@ -215,7 +221,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
                       </td>
 
                       {/* Description */}
-                      <td style={{ padding: "1rem 1.5rem", color: "#64748b", maxWidth: "200px" }}>
+                      <td className="hidden md:table-cell" style={{ padding: "0.875rem 1rem", color: "#64748b", maxWidth: "180px" }}>
                         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
                           {(role as Record<string, unknown>)["description"] as string ||
                            (role as Record<string, unknown>)["Description"] as string ||
@@ -224,7 +230,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
                       </td>
 
                       {/* Permissions */}
-                      <td style={{ padding: "1rem 1.5rem" }}>
+                      <td style={{ padding: "0.875rem 1rem" }}>
                         {enabled.length === 0 ? (
                           <span style={{ fontSize: "0.8125rem", color: "#cbd5e1" }}>No permissions</span>
                         ) : (
@@ -255,7 +261,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
                       </td>
 
                       {/* Actions */}
-                      <td style={{ padding: "1rem 1.5rem", textAlign: "center" }}>
+                      <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
                           <button
                             onClick={() => onEdit(role)}
