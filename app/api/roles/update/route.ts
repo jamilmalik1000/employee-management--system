@@ -5,12 +5,7 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const {
-      id,
-      name,
-      description,
-      permissions,
-    } = body;
+    const { id, name, description, Permissions } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -22,7 +17,7 @@ export async function PUT(req: NextRequest) {
     await adminDb.collection("roles").doc(id).update({
       name,
       description,
-      permissions,
+      Permissions,
       updatedAt: new Date(),
     });
 

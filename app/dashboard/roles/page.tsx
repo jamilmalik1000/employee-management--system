@@ -32,7 +32,14 @@ export default function RolesPage() {
   const handleEdit   = (role: Role) => { setEditRole(role); setModalOpen(true); };
   const handleDelete = (role: Role) => setDeleteRole(role);
 
-  const totalPerms = roles.reduce((acc, r) => acc + (r.permissions?.length ?? 0), 0);
+  function countPerms(r: Role): number {
+    const raw = (r as Record<string, unknown>)["permissions"] ?? (r as Record<string, unknown>)["Permissions"];
+    if (!raw) return 0;
+    if (Array.isArray(raw)) return raw.length;
+    if (typeof raw === "object") return Object.values(raw as Record<string, boolean>).filter(Boolean).length;
+    return 0;
+  }
+  const totalPerms = roles.reduce((acc, r) => acc + countPerms(r), 0);
 
   return (
     <PermissionGuard

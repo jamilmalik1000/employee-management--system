@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const roleRef = await adminDb.collection("roles").add({
       name: body.name,
       description: body.description,
-      permissions: body.permissions,
+      Permissions: body.Permissions,
       createdAt: new Date(),
     });
 

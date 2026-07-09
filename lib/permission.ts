@@ -7,11 +7,14 @@ export const AVAILABLE_PERMISSIONS = [
   { key: "users",       label: "Users",           icon: "👥" },
   { key: "roles",       label: "Roles",           icon: "🛡️" },
   { key: "profile",     label: "Profile",         icon: "👤" },
+  { key: "settings",    label: "Settings",        icon: "⚙️" },
+  { key: "reports",     label: "Reports",         icon: "📈" },
 ];
 
 // Fallback static permissions used when Firestore roles are not yet loaded
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
-  admin:    ["dashboard", "employees", "departments", "attendance", "leaves", "users", "roles", "profile"],
+  admin:    ["dashboard", "employees", "departments", "attendance", "leaves", "users", "roles", "profile", "settings", "reports"],
   hr:       ["dashboard", "employees", "departments", "attendance", "leaves", "profile"],
   employee: ["dashboard", "attendance", "leaves", "profile"],
+  manager:  ["dashboard", "employees", "departments", "attendance", "leaves", "reports", "profile"],
 };

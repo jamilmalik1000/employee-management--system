@@ -42,16 +42,18 @@ export async function PUT(req: NextRequest) {
     // Update Firebase Authentication
     await adminAuth.updateUser(uid, authData);
 
-    // Update Firestore
-    await adminDb.collection("users").doc(uid).update({
+    // Update Firestore — strip undefined values Firestore can't handle
+    const firestoreData: Record<string, unknown> = {
       name,
       email,
       role,
-      department,
-      employeeId,
       isActive,
       updatedAt: new Date(),
-    });
+    };
+    if (department !== undefined) firestoreData.department = department;
+    if (employeeId !== undefined) firestoreData.employeeId = employeeId;
+
+    await adminDb.collection("users").doc(uid).update(firestoreData);
 
     return NextResponse.json({
       success: true,

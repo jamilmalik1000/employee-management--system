@@ -2,6 +2,7 @@
 
 import { User } from "@/app/dashboard/users/page";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
@@ -41,10 +42,11 @@ export default function DeleteUserModal({
         throw new Error(data.message);
       }
 
+      toast.success(`"${currentUser.name}" deleted successfully.`);
       await refreshUsers();
       onClose();
     } catch (error: any) {
-      alert(error.message);
+      toast.error(error.message || "Failed to delete user.");
     } finally {
       setLoading(false);
     }

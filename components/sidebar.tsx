@@ -32,7 +32,8 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router   = useRouter();
 
-  const navItems  = ALL_NAV_ITEMS.filter((item) => permissions.includes(item.permission));
+  const isAdmin   = role?.toLowerCase() === "admin";
+  const navItems   = isAdmin ? ALL_NAV_ITEMS : ALL_NAV_ITEMS.filter((item) => permissions.includes(item.permission));
   const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
   const name      = user?.displayName || user?.email?.split("@")[0] || "User";
   const initials  = name.slice(0, 2).toUpperCase();

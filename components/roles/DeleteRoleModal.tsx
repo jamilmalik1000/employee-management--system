@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { Role } from "./RoleModal";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
@@ -28,10 +29,12 @@ export default function DeleteRoleModal({ open, onClose, role, refreshRoles }: P
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to delete role.");
+      toast.success(`"${role.name}" role deleted successfully.`);
       refreshRoles();
       onClose();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Failed to delete role.");
     }
     setLoading(false);
   };

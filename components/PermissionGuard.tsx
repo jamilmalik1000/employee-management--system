@@ -10,8 +10,9 @@ interface Props {
 }
 
 export default function PermissionGuard({ permission, children, fallback = null }: Props) {
-  const { permissions, loading } = useAuth();
+  const { permissions, role, loading } = useAuth();
   if (loading) return null;
+  if (role?.toLowerCase() === "admin") return <>{children}</>;
   if (!permissions.includes(permission)) return <>{fallback}</>;
   return <>{children}</>;
 }

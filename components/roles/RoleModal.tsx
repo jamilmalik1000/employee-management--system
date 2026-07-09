@@ -3,12 +3,16 @@
 import { useEffect, useState } from "react";
 import { X, ShieldCheck, Loader2 } from "lucide-react";
 import { AVAILABLE_PERMISSIONS } from "@/lib/permission";
+import { toast } from "sonner";
 
 export interface Role {
   id: string;
   name: string;
-  description: string;
-  permissions: string[];
+  description?: string;
+  Description?: string;
+  permissions?: Record<string, boolean> | string[];
+  Permissions?: Record<string, boolean> | string[];
+  [key: string]: unknown;
 }
 
 interface Props {
@@ -21,7 +25,7 @@ interface Props {
 const PERMISSION_GROUPS = [
   { group: "Core",       keys: ["dashboard", "profile"] },
   { group: "HR & People",keys: ["employees", "departments", "attendance", "leaves"] },
-  { group: "System",     keys: ["users", "roles"] },
+  { group: "System",     keys: ["users", "roles", "settings", "reports"] },
 ];
 
 export default function RoleModal({ open, onClose, role: editRole, refreshRoles }: Props) {
@@ -33,12 +37,22 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
 
+  // Normalize permissions from API (object or array, any casing) → string[]
+  function normalizePerms(role: Role): string[] {
+    const raw = role.Permissions ?? role.permissions;
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.map((k) => k.toLowerCase());
+    return Object.entries(raw)
+      .filter(([, v]) => v === true)
+      .map(([k]) => k.toLowerCase());
+  }
+
   // Populate form when editing
   useEffect(() => {
     if (editRole) {
       setName(editRole.name);
-      setDescription(editRole.description ?? "");
-      setPermissions(editRole.permissions ?? []);
+      setDescription((editRole.description ?? editRole.Description) || "");
+      setPermissions(normalizePerms(editRole));
     } else {
       setName("");
       setDescription("");
@@ -75,9 +89,18 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
     try {
       const url    = isEdit ? "/api/roles/update" : "/api/roles/create";
       const method = isEdit ? "PUT" : "POST";
-      const body   = isEdit
-        ? { id: editRole!.id, name, description, permissions }
-        : { name, description, permissions };
+
+      // Build Permissions object with capitalized key to match Firestore schema
+      const allKeys = PERMISSION_GROUPS.flatMap((g) => g.keys);
+      const PermissionsObj: Record<string, boolean> = {};
+      allKeys.forEach((k) => {
+        const capitalized = k.charAt(0).toUpperCase() + k.slice(1);
+        PermissionsObj[capitalized] = permissions.includes(k);
+      });
+
+      const body = isEdit
+        ? { id: editRole!.id, name, description, Permissions: PermissionsObj }
+        : { name, description, Permissions: PermissionsObj };
 
       const res = await fetch(url, {
         method,
@@ -90,10 +113,12 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
         throw new Error(d.message || "Failed to save role.");
       }
 
+      toast.success(isEdit ? `"${name}" role updated successfully!` : `"${name}" role created successfully!`);
       refreshRoles();
       onClose();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Failed to save role.");
     }
 
     setLoading(false);

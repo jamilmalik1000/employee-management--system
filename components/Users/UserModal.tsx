@@ -5,6 +5,7 @@ import {
   X, Plus, User, Mail, Lock, Building2, BadgeCheck,
   ChevronDown, ShieldCheck, AlertCircle, Loader2, ToggleLeft,
 } from "lucide-react";
+import { toast } from "sonner";
 import { User as UserType } from "@/app/dashboard/users/page";
 import { Role } from "@/components/roles/RoleModal";
 import RoleModal from "@/components/roles/RoleModal";
@@ -119,10 +120,12 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to save user.");
+      toast.success(isEdit ? "User updated successfully!" : "User created successfully!");
       refreshUsers();
       onClose();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Failed to save user.");
     }
     setLoading(false);
   };

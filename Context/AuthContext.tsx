@@ -16,7 +16,7 @@ import {
 } from "firebase/auth";
 
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permission";
 
 type UserRole = "admin" | "hr" | "employee" | null;
@@ -50,20 +50,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const userRole = userSnap.data().role as UserRole;
             setRole(userRole);
 
-            // 2. Try to load permissions from Firestore roles collection
+            // 2. Load permissions from Firestore roles collection
             if (userRole) {
-              try {
-                const rolesQ  = query(collection(db, "roles"), where("name", "==", userRole));
-                const roleSnap = await getDocs(rolesQ);
-                if (!roleSnap.empty) {
-                  const perms = roleSnap.docs[0].data().permissions as string[];
-                  setPermissions(Array.isArray(perms) ? perms : []);
-                } else {
-                  // Fall back to static defaults
-                  setPermissions(DEFAULT_ROLE_PERMISSIONS[userRole] ?? []);
+              const normalizedRole = userRole.toLowerCase() as keyof typeof DEFAULT_ROLE_PERMISSIONS;
+
+              // Admin always gets full permissions — no Firestore lookup needed
+              if (normalizedRole === "admin") {
+                setPermissions(DEFAULT_ROLE_PERMISSIONS["admin"]);
+              } else {
+                try {
+                  const allRoles = await getDocs(collection(db, "roles"));
+                  const matched  = allRoles.docs.find(
+                    (d) => d.data().name?.toLowerCase() === normalizedRole
+                  );
+                  if (matched) {
+                    const data = matched.data();
+                    const raw  = data.Permissions ?? data.permissions;
+                    let enabled: string[] = [];
+                    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+                      enabled = Object.entries(raw as Record<string, boolean>)
+                        .filter(([, v]) => v === true)
+                        .map(([k]) => k.toLowerCase());
+                    } else if (Array.isArray(raw)) {
+                      enabled = raw.map((k: string) => k.toLowerCase());
+                    }
+                    setPermissions(enabled.length ? enabled : DEFAULT_ROLE_PERMISSIONS[normalizedRole] ?? []);
+                  } else {
+                    setPermissions(DEFAULT_ROLE_PERMISSIONS[normalizedRole] ?? []);
+                  }
+                } catch {
+                  setPermissions(DEFAULT_ROLE_PERMISSIONS[normalizedRole] ?? []);
                 }
-              } catch {
-                setPermissions(DEFAULT_ROLE_PERMISSIONS[userRole] ?? []);
               }
             }
           } else {
