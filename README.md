@@ -1,36 +1,301 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Employee Management System (EMS)
 
-## Getting Started
+A modern Employee Management System built with **Next.js**, **TypeScript**, **Firebase Authentication**, and **Cloud Firestore**. The system provides secure authentication, role-based access control, employee management, and an intuitive dashboard for managing organizational data.
 
-First, run the development server:
+---
+
+## 🚀 Features
+
+### 🔐 Authentication
+
+- Firebase Authentication
+- Secure Login
+- Forgot Password (Email Reset)
+- Role-Based Authentication
+- Protected Routes
+
+---
+
+### 👥 User Management
+
+Only **Admin** users can:
+
+- Create Users
+- View Users
+- Update User Information
+- Delete Users
+- Change User Email
+- Reset User Password
+- Assign Roles
+
+---
+
+### 🏢 Employee Management
+
+Complete Employee CRUD:
+
+- Add Employee
+- Edit Employee
+- Delete Employee
+- Search Employees
+- Filter by Department
+- Filter by Status
+
+Employee Information includes:
+
+- Employee ID (Auto Generated)
+- Name
+- Email
+- Phone
+- Department
+- Designation
+- Employment Type
+- Gender
+- Login Enabled
+- Linked User Account
+- Status
+- Created Date
+- Updated Date
+
+Employees can exist **with or without login accounts**, making the system suitable for contract workers, interns, and other staff.
+
+---
+
+### 🛡 Role Management
+
+Role CRUD:
+
+- Create Role
+- Edit Role
+- Delete Role
+
+Permissions are assigned using checkboxes.
+
+Example permissions:
+
+- Dashboard
+- Users
+- Employees
+- Departments
+- Attendance
+- Leaves
+- Reports
+- Settings
+
+The sidebar is dynamically generated based on the logged-in user's permissions.
+
+---
+
+### 📊 Dashboard
+
+Dashboard Cards include:
+
+- Total Employees
+- Active Employees
+- Inactive Employees
+- Login Enabled Employees
+
+---
+
+## 🛠 Technology Stack
+
+### Frontend
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+
+### Backend
+
+- Next.js API Routes
+
+### Database
+
+- Cloud Firestore
+
+### Authentication
+
+- Firebase Authentication
+- Firebase Admin SDK
+
+### Deployment
+
+- Vercel
+
+---
+
+## 📂 Project Structure
+
+```
+app/
+│
+├── api/
+│   ├── users/
+│   ├── employees/
+│   └── roles/
+│
+├── dashboard/
+│   ├── users/
+│   ├── employees/
+│   └── roles/
+│
+components/
+│
+├── users/
+├── employees/
+└── roles/
+│
+context/
+│
+lib/
+│   ├── firebase.ts
+│   └── firebase-admin.ts
+│
+types/
+│
+services/
+```
+
+---
+
+## 🔑 Environment Variables
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=
+
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+FIREBASE_PROJECT_ID=
+
+FIREBASE_CLIENT_EMAIL=
+
+FIREBASE_PRIVATE_KEY=
+```
+
+---
+
+## 📦 Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/employee-management-system.git
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🚀 Deployment
 
-To learn more about Next.js, take a look at the following resources:
+The project is configured for deployment on **Vercel**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Deploy steps:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push the project to GitHub
+2. Import the repository into Vercel
+3. Configure Environment Variables
+4. Deploy
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔒 Access Levels
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Admin
+
+- Full System Access
+- Manage Users
+- Manage Employees
+- Manage Roles
+- Manage Departments
+- View Reports
+- Settings
+
+---
+
+### HR
+
+- Dashboard
+- Employees
+- Attendance
+- Leaves
+
+---
+
+### Employee
+
+- Dashboard
+- Profile
+- My Leaves
+
+---
+
+## 📋 Current Modules
+
+- Authentication
+- Dashboard
+- User Management
+- Employee Management
+- Role Management
+- Forgot Password
+- Permission Management
+
+---
+
+## 🚧 Planned Features
+
+- Department Management
+- Attendance Management
+- Leave Management
+- Payroll
+- Holiday Management
+- Shift Management
+- Notifications
+- Reports & Analytics
+- Employee Documents
+- Profile Photos
+- Audit Logs
+- Activity Timeline
+- Export to Excel & PDF
+- Email Notifications
+
+---
+
+## 👨‍💻 Developed By
+
+**Jamil Malik**
+
+Software Engineer
+
+---
+
+## 📄 License
+
+This project is intended for educational and portfolio purposes.
