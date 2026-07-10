@@ -35,8 +35,24 @@ export const inputBase: React.CSSProperties = {
   boxSizing: "border-box" as const,
 };
 
+export const textareaBase: React.CSSProperties = {
+  width: "100%",
+  padding: "0.75rem 0.875rem 0.75rem 2.5rem",
+  fontSize: "0.875rem",
+  fontFamily: "inherit",
+  background: "#f8faff",
+  border: "1.5px solid #e2e8f0",
+  borderRadius: "0.625rem",
+  color: "#0f172a",
+  outline: "none",
+  resize: "vertical",
+  lineHeight: 1.5,
+  transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
+  boxSizing: "border-box" as const,
+};
+
 export const focusIn = (
-  e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+  e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 ) => {
   e.target.style.borderColor = "#6366f1";
   e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12)";
@@ -44,7 +60,7 @@ export const focusIn = (
 };
 
 export const focusOut = (
-  e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+  e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 ) => {
   e.target.style.borderColor = "#e2e8f0";
   e.target.style.boxShadow = "none";
