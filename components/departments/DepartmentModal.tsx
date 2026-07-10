@@ -24,11 +24,12 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  /* sync form when department prop changes (open/edit different department) */
+  /* reset form whenever the modal opens (handles close → reopen with stale data) */
   useEffect(() => {
+    if (!open) return;
     setForm(department);
     setError("");
-  }, [department]);
+  }, [open, department]);
 
   if (!open) return null;
 
