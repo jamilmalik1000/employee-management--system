@@ -52,10 +52,25 @@ export default function EmployeeModal({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
 
+  /* departments for dropdown */
+  const [departments, setDepartments] = useState<{ id?: string; name: string }[]>([]);
+  const [deptLoading, setDeptLoading] = useState(false);
+
   useEffect(() => {
     setForm(employee);
     setErrors(initialErrors);
   }, [employee]);
+
+  /* fetch departments whenever the modal opens */
+  useEffect(() => {
+    if (!open) return;
+    setDeptLoading(true);
+    fetch("/api/departments/list")
+      .then((r) => r.json())
+      .then((data) => setDepartments(Array.isArray(data) ? data : []))
+      .catch(() => setDepartments([]))
+      .finally(() => setDeptLoading(false));
+  }, [open]);
 
   if (!open) return null;
 
@@ -418,14 +433,39 @@ export default function EmployeeModal({
                 <label style={labelStyle}>Department</label>
                 <div style={inputWrap}>
                   <Building2 size={14} style={iconStyle} />
-                  <input
+                  <select
                     name="department"
                     value={form.department}
                     onChange={handleChange}
-                    placeholder="e.g. Engineering"
-                    style={inputBase}
+                    style={{
+                      ...inputBase,
+                      paddingLeft: "2.5rem",
+                      paddingRight: "2.5rem",
+                      appearance: "none",
+                      cursor: "pointer",
+                    }}
                     onFocus={focusIn}
                     onBlur={focusOut}
+                  >
+                    <option value="">
+                      {deptLoading ? "Loading departments…" : "Select Department"}
+                    </option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.name}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      position: "absolute",
+                      right: "0.875rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      pointerEvents: "none",
+                      color: "#94a3b8",
+                    }}
                   />
                 </div>
               </div>
