@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Building2, CalendarCheck,
   CalendarDays, UserCog, UserCircle, ShieldCheck, LogOut, X,
-  Receipt, Settings, ChevronDown,
+  Receipt, Settings, ChevronDown, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 
 const TOP_NAV_ITEMS = [
@@ -30,6 +30,8 @@ const BOTTOM_NAV_ITEMS = [
   { href: "/dashboard/profile", label: "Profile", icon: UserCircle, permission: "profile" },
 ];
 
+const COLLAPSE_KEY = "ems-sidebar-collapsed";
+
 interface Props {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -43,15 +45,29 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: Props) {
   const isAdmin = role?.toLowerCase() === "admin";
   const can     = (permission: string) => isAdmin || permissions.includes(permission);
 
-  const topItems   = TOP_NAV_ITEMS.filter((item) => can(item.permission));
-  const adminItems = ADMIN_NAV_ITEMS.filter((item) => can(item.permission));
+  const topItems    = TOP_NAV_ITEMS.filter((item) => can(item.permission));
+  const adminItems  = ADMIN_NAV_ITEMS.filter((item) => can(item.permission));
   const bottomItems = BOTTOM_NAV_ITEMS.filter((item) => can(item.permission));
 
   const [adminOpen, setAdminOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(COLLAPSE_KEY);
+    if (stored === "1") setCollapsed(true);
+  }, []);
 
   useEffect(() => {
     if (ADMIN_NAV_ITEMS.some((item) => item.href === pathname)) setAdminOpen(true);
   }, [pathname]);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+      return next;
+    });
+  };
 
   const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
   const name      = user?.displayName || user?.email?.split("@")[0] || "User";
@@ -60,138 +76,159 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: Props) {
   const handleLogout = () => { logout(); router.push("/login"); };
   const handleNav    = () => { onMobileClose?.(); };
 
-  const linkStyle = (isActive: boolean): React.CSSProperties => ({
-    display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem",
-    borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: isActive ? 600 : 500,
-    textDecoration: "none", transition: "all 0.15s", color: isActive ? "#fff" : "#9ca3af",
-    background: isActive ? "linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.12))" : "transparent",
-    border: isActive ? "1px solid rgba(99,102,241,0.28)" : "1px solid transparent",
-  });
+  function renderSidebar(mini: boolean, variant: "desktop" | "mobile") {
+    const linkStyle = (isActive: boolean): React.CSSProperties => ({
+      display: "flex", alignItems: "center", gap: mini ? 0 : "0.75rem",
+      justifyContent: mini ? "center" : "flex-start",
+      padding: mini ? "0.625rem" : "0.625rem 0.75rem",
+      borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: isActive ? 600 : 500,
+      textDecoration: "none", transition: "all 0.15s",
+      color: isActive ? "#fff" : "#a89bc4",
+      background: isActive ? "linear-gradient(135deg, rgba(218,0,144,0.26), rgba(242,203,48,0.14))" : "transparent",
+      border: isActive ? "1px solid rgba(218,0,144,0.32)" : "1px solid transparent",
+    });
 
-  const sidebarContent = (
-    <aside style={{ width: "240px", height: "100%", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden", background: "linear-gradient(180deg, #0f0f23 0%, #13132e 60%, #0f172a 100%)", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+    const renderLink = (item: { href: string; label: string; icon: any }, small?: boolean) => {
+      const Icon     = item.icon;
+      const isActive = pathname === item.href;
+      return (
+        <Link key={item.href} href={item.href} onClick={handleNav} title={mini ? item.label : undefined} style={linkStyle(isActive)}>
+          <Icon size={small ? 15 : 16} style={{ flexShrink: 0, color: isActive ? "#F2CB30" : "#8672a3" }} />
+          {!mini && <span style={{ flex: 1 }}>{item.label}</span>}
+          {!mini && isActive && <span style={{ width: "0.375rem", height: "0.375rem", borderRadius: "50%", background: "#F2CB30", flexShrink: 0 }} />}
+        </Link>
+      );
+    };
 
-      {/* Brand */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.375rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <div style={{ width: "2.125rem", height: "2.125rem", borderRadius: "0.625rem", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.875rem", color: "#fff", flexShrink: 0 }}>
-            E
-          </div>
-          <div style={{ lineHeight: 1.3 }}>
-            <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#fff", margin: 0 }}>EMS</p>
-            <p style={{ fontSize: "0.6875rem", color: "#4b5563", margin: 0 }}>Employee System</p>
-          </div>
-        </div>
-        {/* Close button — mobile only */}
-        {onMobileClose && (
-          <button onClick={onMobileClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "0.5rem", width: "2rem", height: "2rem", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9ca3af" }}>
-            <X size={16} />
-          </button>
-        )}
-      </div>
+    return (
+      <aside style={{ width: mini ? "76px" : "240px", height: "100%", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden", background: "var(--gradient-sidebar)", borderRight: "1px solid rgba(255,255,255,0.06)", transition: "width 0.18s ease" }}>
 
-      {/* Navigation */}
-      <nav style={{ flex: 1, padding: "1rem 0.75rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.125rem" }}>
-        <p style={{ fontSize: "0.625rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#374151", padding: "0 0.625rem", marginBottom: "0.5rem" }}>
-          Navigation
-        </p>
-
-        {topItems.map((item) => {
-          const Icon     = item.icon;
-          const isActive = pathname === item.href;
-          return (
-            <Link key={item.href} href={item.href} onClick={handleNav} style={linkStyle(isActive)}>
-              <Icon size={16} style={{ flexShrink: 0, color: isActive ? "#a5b4fc" : "#6b7280" }} />
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {isActive && <span style={{ width: "0.375rem", height: "0.375rem", borderRadius: "50%", background: "#818cf8", flexShrink: 0 }} />}
-            </Link>
-          );
-        })}
-
-        {/* Administration group */}
-        {adminItems.length > 0 && (
-          <>
-            <button
-              type="button"
-              onClick={() => setAdminOpen((o) => !o)}
-              style={{
-                display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem",
-                borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: 500, textAlign: "left",
-                color: adminOpen ? "#fff" : "#9ca3af", background: "transparent",
-                border: "1px solid transparent", cursor: "pointer", width: "100%",
-              }}
-            >
-              <ShieldCheck size={16} style={{ flexShrink: 0, color: adminOpen ? "#a5b4fc" : "#6b7280" }} />
-              <span style={{ flex: 1 }}>Administration</span>
-              <ChevronDown
-                size={14}
-                style={{ flexShrink: 0, color: "#6b7280", transition: "transform 0.15s", transform: adminOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-              />
-            </button>
-
-            {adminOpen && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.125rem", paddingLeft: "0.875rem", marginLeft: "1.125rem", borderLeft: "1px solid rgba(255,255,255,0.08)" }}>
-                {adminItems.map((item) => {
-                  const Icon     = item.icon;
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link key={item.href} href={item.href} onClick={handleNav} style={linkStyle(isActive)}>
-                      <Icon size={15} style={{ flexShrink: 0, color: isActive ? "#a5b4fc" : "#6b7280" }} />
-                      <span style={{ flex: 1 }}>{item.label}</span>
-                      {isActive && <span style={{ width: "0.375rem", height: "0.375rem", borderRadius: "50%", background: "#818cf8", flexShrink: 0 }} />}
-                    </Link>
-                  );
-                })}
+        {/* Brand */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: mini ? "center" : "space-between", padding: mini ? "1.375rem 0.75rem" : "1.375rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
+            <div style={{ width: "2.125rem", height: "2.125rem", borderRadius: "0.625rem", background: "var(--gradient-brand)", boxShadow: "0 4px 12px rgba(var(--color-accent-rgb),0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.875rem", color: "#fff", flexShrink: 0 }}>
+              E
+            </div>
+            {!mini && (
+              <div style={{ lineHeight: 1.3, minWidth: 0 }}>
+                <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#fff", margin: 0 }}>EMS</p>
+                <p style={{ fontSize: "0.6875rem", color: "#7a6a97", margin: 0 }}>Employee System</p>
               </div>
             )}
-          </>
+          </div>
+
+          {/* Mobile close button */}
+          {variant === "mobile" && (
+            <button onClick={onMobileClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "0.5rem", width: "2rem", height: "2rem", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9ca3af", flexShrink: 0 }}>
+              <X size={16} />
+            </button>
+          )}
+
+          {/* Desktop collapse toggle */}
+          {variant === "desktop" && !mini && (
+            <button
+              onClick={toggleCollapsed}
+              title="Collapse sidebar"
+              style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "0.5rem", width: "2rem", height: "2rem", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9ca3af", flexShrink: 0 }}
+            >
+              <PanelLeftClose size={15} />
+            </button>
+          )}
+        </div>
+
+        {/* Desktop collapse toggle — mini state (own row, centered) */}
+        {variant === "desktop" && mini && (
+          <button
+            onClick={toggleCollapsed}
+            title="Expand sidebar"
+            style={{ background: "rgba(255,255,255,0.06)", border: "none", borderTop: "none", borderBottom: "1px solid rgba(255,255,255,0.06)", width: "100%", padding: "0.625rem 0", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9ca3af" }}
+          >
+            <PanelLeftOpen size={16} />
+          </button>
         )}
 
-        {bottomItems.map((item) => {
-          const Icon     = item.icon;
-          const isActive = pathname === item.href;
-          return (
-            <Link key={item.href} href={item.href} onClick={handleNav} style={linkStyle(isActive)}>
-              <Icon size={16} style={{ flexShrink: 0, color: isActive ? "#a5b4fc" : "#6b7280" }} />
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {isActive && <span style={{ width: "0.375rem", height: "0.375rem", borderRadius: "50%", background: "#818cf8", flexShrink: 0 }} />}
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Navigation */}
+        <nav style={{ flex: 1, padding: mini ? "1rem 0.5rem" : "1rem 0.75rem", overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", gap: "0.125rem" }}>
+          {!mini && (
+            <p style={{ fontSize: "0.625rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#5f5080", padding: "0 0.625rem", marginBottom: "0.5rem" }}>
+              Navigation
+            </p>
+          )}
 
-      {/* User footer */}
-      <div style={{ padding: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.625rem 0.75rem", borderRadius: "0.625rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.6875rem", flexShrink: 0 }}>
-            {initials}
+          {topItems.map((item) => renderLink(item))}
+
+          {/* Administration group */}
+          {adminItems.length > 0 && (
+            <>
+              {mini ? (
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.08)", margin: "0.5rem 0.375rem" }} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAdminOpen((o) => !o)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem",
+                    borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: 500, textAlign: "left",
+                    color: adminOpen ? "#fff" : "#a89bc4", background: "transparent",
+                    border: "1px solid transparent", cursor: "pointer", width: "100%",
+                  }}
+                >
+                  <ShieldCheck size={16} style={{ flexShrink: 0, color: adminOpen ? "#F2CB30" : "#8672a3" }} />
+                  <span style={{ flex: 1 }}>Administration</span>
+                  <ChevronDown
+                    size={14}
+                    style={{ flexShrink: 0, color: "#8672a3", transition: "transform 0.15s", transform: adminOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                  />
+                </button>
+              )}
+
+              {(mini || adminOpen) && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.125rem", paddingLeft: mini ? 0 : "0.875rem", marginLeft: mini ? 0 : "1.125rem", borderLeft: mini ? "none" : "1px solid rgba(255,255,255,0.08)" }}>
+                  {adminItems.map((item) => renderLink(item, true))}
+                </div>
+              )}
+            </>
+          )}
+
+          {bottomItems.map((item) => renderLink(item))}
+        </nav>
+
+        {/* User footer */}
+        <div style={{ padding: mini ? "0.75rem 0.5rem" : "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: mini ? "center" : "flex-start", gap: "0.625rem", padding: mini ? "0.5rem" : "0.625rem 0.75rem", borderRadius: "0.625rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div title={mini ? name : undefined} style={{ width: "2rem", height: "2rem", borderRadius: "50%", background: "var(--gradient-brand)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.6875rem", flexShrink: 0 }}>
+              {initials}
+            </div>
+            {!mini && (
+              <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
+                <p style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#f1f5f9", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: "capitalize" }}>{name}</p>
+                <p style={{ fontSize: "0.6875rem", color: "#7a6a97", margin: 0 }}>{roleLabel}</p>
+              </div>
+            )}
           </div>
-          <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
-            <p style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#f1f5f9", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: "capitalize" }}>{name}</p>
-            <p style={{ fontSize: "0.6875rem", color: "#6b7280", margin: 0 }}>{roleLabel}</p>
-          </div>
+          <button
+            onClick={handleLogout}
+            title={mini ? "Sign out" : undefined}
+            style={{ display: "flex", alignItems: "center", justifyContent: mini ? "center" : "flex-start", gap: mini ? 0 : "0.625rem", padding: mini ? "0.5rem" : "0.5rem 0.75rem", borderRadius: "0.625rem", fontSize: "0.8125rem", fontWeight: 500, color: "#8672a3", background: "transparent", border: "none", cursor: "pointer", transition: "all 0.15s", width: "100%", textAlign: "left" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,63,184,0.1)"; (e.currentTarget as HTMLElement).style.color = "#FF6BC9"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#8672a3"; }}
+          >
+            <LogOut size={15} style={{ flexShrink: 0 }} />
+            {!mini && <span>Sign out</span>}
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{ display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.5rem 0.75rem", borderRadius: "0.625rem", fontSize: "0.8125rem", fontWeight: 500, color: "#6b7280", background: "transparent", border: "none", cursor: "pointer", transition: "all 0.15s", width: "100%", textAlign: "left" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)"; (e.currentTarget as HTMLElement).style.color = "#f87171"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#6b7280"; }}
-        >
-          <LogOut size={15} style={{ flexShrink: 0 }} />
-          <span>Sign out</span>
-        </button>
-      </div>
-    </aside>
-  );
+      </aside>
+    );
+  }
 
   return (
     <>
       {/* Desktop sidebar */}
       <div className="hidden lg:flex lg:flex-shrink-0" style={{ height: "100vh" }}>
-        {sidebarContent}
+        {renderSidebar(collapsed, "desktop")}
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — always full width, never collapsed */}
       {mobileOpen && (
         <>
           {/* Backdrop */}
@@ -201,7 +238,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: Props) {
           />
           {/* Drawer */}
           <div className="animate-slideDown" style={{ position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 50 }}>
-            {sidebarContent}
+            {renderSidebar(false, "mobile")}
           </div>
         </>
       )}

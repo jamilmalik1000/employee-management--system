@@ -31,14 +31,14 @@ export default function LoginPage() {
 
   /* shared focus/blur handlers */
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#6366f1";
-    e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12)";
+    e.target.style.borderColor = "#DA0090";
+    e.target.style.boxShadow = "0 0 0 3px rgba(218,0,144,0.12)";
     e.target.style.background = "#fff";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#e2e8f0";
+    e.target.style.borderColor = "#E6DFF3";
     e.target.style.boxShadow = "none";
-    e.target.style.background = "#f8faff";
+    e.target.style.background = "#FAF7FE";
   };
 
   return (
@@ -49,7 +49,7 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "1rem",
-        background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 45%, #7c3aed 100%)",
+        background: "linear-gradient(135deg, #2C0E63 0%, #6C1FA8 45%, #DA0090 100%)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -83,7 +83,7 @@ export default function LoginPage() {
         <div
           style={{
             height: "6px",
-            background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
+            background: "linear-gradient(90deg, #2C0E63, #DA0090, #F2CB30)",
           }}
         />
 
@@ -93,8 +93,8 @@ export default function LoginPage() {
           <div style={{
             width: "3.25rem", height: "3.25rem",
             borderRadius: "1rem",
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-            boxShadow: "0 8px 24px rgba(99,102,241,0.4)",
+            background: "linear-gradient(135deg, #2C0E63, #DA0090)",
+            boxShadow: "0 8px 24px rgba(218,0,144,0.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 1.25rem",
             fontSize: "1.25rem", fontWeight: 900, color: "#fff",
@@ -105,12 +105,12 @@ export default function LoginPage() {
 
           <h1 style={{
             fontSize: "1.625rem", fontWeight: 800,
-            color: "#0f172a", letterSpacing: "-0.025em",
+            color: "#1A0B2E", letterSpacing: "-0.025em",
             margin: "0 0 0.375rem",
           }}>
             Welcome back
           </h1>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", margin: 0 }}>
+          <p style={{ fontSize: "0.875rem", color: "#5B4B78", margin: 0 }}>
             Employee Management System
           </p>
         </div>
@@ -142,7 +142,7 @@ export default function LoginPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             <label style={{
               fontSize: "0.75rem", fontWeight: 700,
-              color: "#475569", letterSpacing: "0.06em",
+              color: "#5B4B78", letterSpacing: "0.06em",
               textTransform: "uppercase",
             }}>
               Email Address
@@ -153,7 +153,7 @@ export default function LoginPage() {
                 style={{
                   position: "absolute", left: "0.875rem",
                   top: "50%", transform: "translateY(-50%)",
-                  pointerEvents: "none", color: "#94a3b8",
+                  pointerEvents: "none", color: "#9C90B3",
                 }}
               />
               <input
@@ -167,10 +167,10 @@ export default function LoginPage() {
                   padding: "0.8125rem 0.875rem 0.8125rem 2.625rem",
                   fontSize: "0.9375rem",
                   fontFamily: "inherit",
-                  background: "#f8faff",
-                  border: "1.5px solid #e2e8f0",
+                  background: "#FAF7FE",
+                  border: "1.5px solid #E6DFF3",
                   borderRadius: "0.75rem",
-                  color: "#0f172a",
+                  color: "#1A0B2E",
                   outline: "none",
                   transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
                   boxSizing: "border-box",
@@ -185,7 +185,7 @@ export default function LoginPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             <label style={{
               fontSize: "0.75rem", fontWeight: 700,
-              color: "#475569", letterSpacing: "0.06em",
+              color: "#5B4B78", letterSpacing: "0.06em",
               textTransform: "uppercase",
             }}>
               Password
@@ -196,7 +196,7 @@ export default function LoginPage() {
                 style={{
                   position: "absolute", left: "0.875rem",
                   top: "50%", transform: "translateY(-50%)",
-                  pointerEvents: "none", color: "#94a3b8",
+                  pointerEvents: "none", color: "#9C90B3",
                 }}
               />
               <input
@@ -210,10 +210,10 @@ export default function LoginPage() {
                   padding: "0.8125rem 2.5rem 0.8125rem 2.625rem",
                   fontSize: "0.9375rem",
                   fontFamily: "inherit",
-                  background: "#f8faff",
-                  border: "1.5px solid #e2e8f0",
+                  background: "#FAF7FE",
+                  border: "1.5px solid #E6DFF3",
                   borderRadius: "0.75rem",
-                  color: "#0f172a",
+                  color: "#1A0B2E",
                   outline: "none",
                   transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
                   boxSizing: "border-box",
@@ -224,7 +224,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 0, display: "flex", alignItems: "center" }}
+                style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9C90B3", padding: 0, display: "flex", alignItems: "center" }}
               >
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -234,7 +234,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setOpenForgot(true)}
-              style={{ fontSize: "0.875rem", color: "#6366f1", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              style={{ fontSize: "0.875rem", color: "#DA0090", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
               onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
               onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
             >
@@ -256,13 +256,13 @@ export default function LoginPage() {
               fontFamily: "inherit",
               color: "#fff",
               background: loading
-                ? "#818cf8"
-                : "linear-gradient(135deg, #6366f1, #4f46e5)",
+                ? "#C86FBE"
+                : "linear-gradient(135deg, #2C0E63, #DA0090)",
               border: "none",
               borderRadius: "0.75rem",
               cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.8 : 1,
-              boxShadow: "0 4px 18px rgba(99,102,241,0.4)",
+              boxShadow: "0 4px 18px rgba(218,0,144,0.4)",
               transition: "box-shadow 0.2s, transform 0.15s",
               display: "flex",
               alignItems: "center",
@@ -271,12 +271,12 @@ export default function LoginPage() {
             }}
             onMouseEnter={(e) => {
               if (!loading) {
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px rgba(99,102,241,0.52)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px rgba(218,0,144,0.52)";
                 (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
               }
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 18px rgba(99,102,241,0.4)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 18px rgba(218,0,144,0.4)";
               (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
             }}
           >
@@ -291,8 +291,8 @@ export default function LoginPage() {
           </button>
 
           {/* Footer hint */}
-          {/* <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>
-            Demo: <span style={{ color: "#6366f1", fontWeight: 600 }}>admin@example.com</span>
+          {/* <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "#9C90B3", margin: 0 }}>
+            Demo: <span style={{ color: "#DA0090", fontWeight: 600 }}>admin@example.com</span>
           </p> */}
 
         </form>

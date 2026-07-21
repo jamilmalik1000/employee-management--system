@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ProtectedRoute>
-      <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#f0f2f8" }}>
+      <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--color-bg-app)" }}>
 
         {/* Sidebar — desktop always visible, mobile via drawer */}
         <Sidebar mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
