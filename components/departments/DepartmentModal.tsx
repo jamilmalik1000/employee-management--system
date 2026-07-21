@@ -6,7 +6,7 @@ import {
   AlertCircle, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Department as DepartmentType } from "@/app/dashboard/departments/page";
+import { Department as DepartmentType } from "@/types/department";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut, labelStyle } from "@/lib/ui";
 import { textareaBase } from "@/lib/ui";
 

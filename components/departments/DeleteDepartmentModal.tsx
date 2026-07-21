@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { Department } from "@/app/dashboard/departments/page";
+import { Department } from "@/types/department";
 import { toast } from "sonner";
 
 interface Props {

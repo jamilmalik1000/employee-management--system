@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, Trash2, Building2 } from "lucide-react";
-import { Department } from "@/app/dashboard/departments/page";
+import { Department } from "@/types/department";
 
 interface Props {
   departments: Department[];

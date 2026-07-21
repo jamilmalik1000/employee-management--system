@@ -6,15 +6,7 @@ import DepartmentTable from "@/components/departments/DepartmentTable";
 import DepartmentModal from "@/components/departments/DepartmentModal";
 import DeleteDepartmentModal from "@/components/departments/DeleteDepartmentModal";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
-
-export interface Department {
-  id?: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  createdAt?: any;
-  updatedAt?: any;
-}
+import { Department } from "@/types/department";
 
 const emptyDepartment: Department = { id: "", name: "", description: "", isActive: true };
 

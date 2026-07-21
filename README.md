@@ -61,6 +61,20 @@ Employees can exist **with or without login accounts**, making the system suitab
 
 ---
 
+### 🏢 Department Management
+
+Department CRUD:
+
+- Add Department
+- Edit Department
+- Delete Department (blocked while employees are still assigned to it)
+- Search Departments
+- Active / Inactive status
+
+Departments feed the Department dropdown and filter on the Employee Management page, and access is controlled by the `departments` permission.
+
+---
+
 ### 🛡 Role Management
 
 Role CRUD:
@@ -133,17 +147,20 @@ app/
 ├── api/
 │   ├── users/
 │   ├── employees/
+│   ├── departments/
 │   └── roles/
 │
 ├── dashboard/
 │   ├── users/
 │   ├── employees/
+│   ├── departments/
 │   └── roles/
 │
 components/
 │
 ├── users/
 ├── employees/
+├── departments/
 └── roles/
 │
 context/
@@ -263,6 +280,7 @@ Deploy steps:
 - Dashboard
 - User Management
 - Employee Management
+- Department Management
 - Role Management
 - Forgot Password
 - Permission Management
@@ -271,7 +289,6 @@ Deploy steps:
 
 ## 🚧 Planned Features
 
-- Department Management
 - Attendance Management
 - Leave Management
 - Payroll

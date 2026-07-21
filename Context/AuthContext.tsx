@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         .map(([k]) => k.toLowerCase());
                     } else if (Array.isArray(raw)) {
                       enabled = raw.map((k: string) => k.toLowerCase());
+                      
                     }
                     setPermissions(enabled.length ? enabled : DEFAULT_ROLE_PERMISSIONS[normalizedRole] ?? []);
                   } else {
