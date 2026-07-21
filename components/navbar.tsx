@@ -10,8 +10,10 @@ const pageTitles: Record<string, { title: string; sub: string }> = {
   "/dashboard/departments": { title: "Departments",      sub: "Organise teams and departments"        },
   "/dashboard/attendence":  { title: "Attendance",       sub: "Track daily attendance records"        },
   "/dashboard/leaves":      { title: "Leave Requests",   sub: "Review and manage leave requests"      },
-  "/dashboard/users":       { title: "Users",            sub: "Manage system users and roles"         },
+  "/dashboard/users":       { title: "Users & Permissions", sub: "Manage system users and roles"      },
   "/dashboard/roles":       { title: "Roles",            sub: "Define roles and permissions"          },
+  "/dashboard/expenses":    { title: "Expenses",         sub: "Track and manage company expenses"     },
+  "/dashboard/settings":    { title: "Settings",         sub: "Manage your company profile"           },
   "/dashboard/profile":     { title: "Profile",          sub: "Your account information"              },
 };
 

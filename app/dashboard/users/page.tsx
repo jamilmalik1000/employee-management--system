@@ -68,7 +68,7 @@ export default function UsersPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>User Management</h1>
+          <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Users & Permissions</h1>
           <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>Manage admins, HR staff and employees</p>
         </div>
         <button

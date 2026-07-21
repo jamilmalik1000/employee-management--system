@@ -34,7 +34,7 @@ export async function DELETE(req: NextRequest) {
     const employee = employeeDoc.data();
 
     // Prevent deleting linked employee
-    if (employee?.isLogin && employee?.userId) {
+    if (employee?.userId) {
       return NextResponse.json(
         {
           message:

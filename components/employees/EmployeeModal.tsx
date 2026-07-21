@@ -15,6 +15,9 @@ import {
   Loader2,
   ToggleLeft,
   ChevronDown,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Employee } from "@/types/employee";
@@ -38,6 +41,7 @@ const initialErrors = {
   name: "",
   email: "",
   phone: "",
+  password: "",
 };
 
 export default function EmployeeModal({
@@ -47,8 +51,11 @@ export default function EmployeeModal({
   refreshEmployees,
 }: Props) {
   const isEdit = !!employee.id;
+  const hadLoginBefore = !!employee.userId;
 
   const [form, setForm] = useState<Employee>(employee);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
 
@@ -58,6 +65,8 @@ export default function EmployeeModal({
 
   useEffect(() => {
     setForm(employee);
+    setPassword("");
+    setShowPassword(false);
     setErrors(initialErrors);
   }, [employee]);
 
@@ -111,6 +120,11 @@ export default function EmployeeModal({
       valid = false;
     }
 
+    if (form.isLogin && !hadLoginBefore && !password.trim()) {
+      temp.password = "Password is required to set up login access";
+      valid = false;
+    }
+
     setErrors(temp);
 
     return valid;
@@ -130,12 +144,17 @@ export default function EmployeeModal({
 
       const method = form.id ? "PUT" : "POST";
 
+      const body = {
+        ...form,
+        ...(password.trim() ? { password: password.trim() } : {}),
+      };
+
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
@@ -630,6 +649,86 @@ export default function EmployeeModal({
                 </div>
               </label>
             </div>
+
+            {/* Login credentials */}
+            {form.isLogin && (
+              <div style={{ marginTop: "0.875rem" }}>
+                <label style={labelStyle}>
+                  Password{" "}
+                  {hadLoginBefore ? (
+                    <span
+                      style={{
+                        color: "#94a3b8",
+                        fontWeight: 500,
+                        textTransform: "none",
+                        letterSpacing: 0,
+                      }}
+                    >
+                      (leave blank to keep current)
+                    </span>
+                  ) : (
+                    <span style={{ color: "#ef4444" }}>*</span>
+                  )}
+                </label>
+                <div style={inputWrap}>
+                  <Lock size={14} style={iconStyle} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={hadLoginBefore ? "••••••••" : "Min. 6 characters"}
+                    required={!hadLoginBefore}
+                    style={{ ...inputBase, paddingRight: "2.5rem" }}
+                    onFocus={focusIn}
+                    onBlur={focusOut}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((p) => !p)}
+                    style={{
+                      position: "absolute",
+                      right: "0.75rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#94a3b8",
+                      padding: 0,
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p style={{ color: "#dc2626", fontSize: "0.75rem", marginTop: "0.375rem" }}>
+                    {errors.password}
+                  </p>
+                )}
+                <p style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.375rem" }}>
+                  This creates a real login account using the employee's email above, with the{" "}
+                  <strong>Employee</strong> role.
+                </p>
+              </div>
+            )}
+
+            {!form.isLogin && hadLoginBefore && (
+              <div
+                style={{
+                  marginTop: "0.875rem",
+                  padding: "0.75rem 1rem",
+                  background: "rgba(239,68,68,0.05)",
+                  border: "1px solid rgba(239,68,68,0.15)",
+                  borderRadius: "0.625rem",
+                }}
+              >
+                <p style={{ fontSize: "0.8125rem", color: "#dc2626", fontWeight: 600, margin: 0 }}>
+                  ⚠️ Saving will permanently remove this employee's login account.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Actions */}

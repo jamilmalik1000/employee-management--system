@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
 function generateEmployeeId() {
   return (
@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const {
-      userId,
       isLogin,
+      password,
       name,
       email,
       phone,
@@ -84,10 +84,55 @@ export async function POST(req: NextRequest) {
       employeeId = generateEmployeeId();
     }
 
+    // Set up a real login account when requested
+    let userId = "";
+
+    if (isLogin) {
+      if (!password || password.length < 6) {
+        return NextResponse.json(
+          { message: "Password must be at least 6 characters to set up login access." },
+          { status: 400 }
+        );
+      }
+
+      const usersRef = adminDb.collection("users");
+      const existingUser = await usersRef.where("email", "==", email).limit(1).get();
+      if (!existingUser.empty) {
+        return NextResponse.json(
+          { message: "A login account with this email already exists." },
+          { status: 400 }
+        );
+      }
+
+      try {
+        const userRecord = await adminAuth.createUser({
+          email,
+          password,
+          displayName: name,
+        });
+        userId = userRecord.uid;
+
+        await usersRef.doc(userId).set({
+          name,
+          email,
+          role: "employee",
+          department,
+          employeeId,
+          isActive: isActive ?? true,
+          createdAt: new Date(),
+        });
+      } catch (err: any) {
+        return NextResponse.json(
+          { message: err.message || "Failed to create login account." },
+          { status: 400 }
+        );
+      }
+    }
+
     const docRef = await adminDb.collection("employees").add({
       employeeId,
 
-      userId: userId || "",
+      userId,
 
       isLogin: isLogin || false,
 
