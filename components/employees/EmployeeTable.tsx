@@ -1,13 +1,16 @@
 "use client";
 
-import { Pencil, Trash2, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { Employee } from "@/types/employee";
+import EmployeeActionsMenu from "@/components/employees/EmployeeActionsMenu";
 
 interface Props {
   employees: Employee[];
   loading: boolean;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  onAddSalary: (employee: Employee) => void;
+  onViewSalaryHistory: (employee: Employee) => void;
 }
 
 const typeMeta: Record<
@@ -47,6 +50,8 @@ export default function EmployeeTable({
   loading,
   onEdit,
   onDelete,
+  onAddSalary,
+  onViewSalaryHistory,
 }: Props) {
   return (
     <div
@@ -435,61 +440,15 @@ export default function EmployeeTable({
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          gap: "0.375rem",
                         }}
                       >
-                        <button
-                          onClick={() => onEdit(employee)}
-                          title="Edit employee"
-                          style={{
-                            width: "2.125rem",
-                            height: "2.125rem",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "0.5rem",
-                            border: "1px solid rgba(99,102,241,0.15)",
-                            background: "rgba(99,102,241,0.07)",
-                            color: "#6366f1",
-                            cursor: "pointer",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background =
-                              "rgba(99,102,241,0.15)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background =
-                              "rgba(99,102,241,0.07)")
-                          }
-                        >
-                          <Pencil size={13} />
-                        </button>
-                        <button
-                          onClick={() => onDelete(employee)}
-                          title="Delete employee"
-                          style={{
-                            width: "2.125rem",
-                            height: "2.125rem",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "0.5rem",
-                            border: "1px solid rgba(239,68,68,0.15)",
-                            background: "rgba(239,68,68,0.07)",
-                            color: "#ef4444",
-                            cursor: "pointer",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background =
-                              "rgba(239,68,68,0.15)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background =
-                              "rgba(239,68,68,0.07)")
-                          }
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        <EmployeeActionsMenu
+                          employee={employee}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onAddSalary={onAddSalary}
+                          onViewSalaryHistory={onViewSalaryHistory}
+                        />
                       </div>
                     </td>
                   </tr>

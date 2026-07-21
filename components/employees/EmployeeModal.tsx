@@ -18,6 +18,7 @@ import {
   Lock,
   Eye,
   EyeOff,
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Employee } from "@/types/employee";
@@ -539,6 +540,25 @@ export default function EmployeeModal({
                       pointerEvents: "none",
                       color: "#94a3b8",
                     }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Basic Salary</label>
+                <div style={inputWrap}>
+                  <DollarSign size={14} style={iconStyle} />
+                  <input
+                    type="number"
+                    name="basicSalary"
+                    value={form.basicSalary}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    style={inputBase}
+                    onFocus={focusIn}
+                    onBlur={focusOut}
                   />
                 </div>
               </div>

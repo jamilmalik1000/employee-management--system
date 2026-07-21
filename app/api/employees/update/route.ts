@@ -17,6 +17,7 @@ export async function PUT(req: NextRequest) {
       designation,
       employmentType,
       gender,
+      basicSalary,
       isActive,
     } = body;
 
@@ -171,6 +172,7 @@ export async function PUT(req: NextRequest) {
       designation,
       employmentType,
       gender,
+      basicSalary: Number(basicSalary) || 0,
       isActive,
       updatedAt: Timestamp.now(),
     });

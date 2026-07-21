@@ -21,6 +21,8 @@ export interface Employee {
 
   gender: string;
 
+  basicSalary: number | "";
+
   isActive: boolean;
 
   createdAt?: any;

@@ -5,8 +5,12 @@ import { Plus, Search } from "lucide-react";
 import EmployeeTable from "@/components/employees/EmployeeTable";
 import EmployeeModal from "@/components/employees/EmployeeModal";
 import DeleteEmployeeModal from "@/components/employees/DeleteEmployeeModal";
+import SalaryModal from "@/components/salary/SalaryModal";
+import SalaryHistoryModal from "@/components/salary/SalaryHistoryModal";
 
 import { Employee } from "@/types/employee";
+import { SalaryRecord } from "@/types/salary";
+import { emptySalaryFor } from "@/lib/salary";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
 
 export default function EmployeesPage() {
@@ -26,6 +30,8 @@ export default function EmployeesPage() {
 
     gender: "",
 
+    basicSalary: "",
+
     isActive: true,
   };
 
@@ -44,6 +50,12 @@ export default function EmployeesPage() {
 
   const [selectedEmployee, setSelectedEmployee] =
     useState<Employee>(emptyEmployee);
+
+  const [salaryModalOpen, setSalaryModalOpen] = useState(false);
+  const [salaryTarget, setSalaryTarget] = useState<SalaryRecord | null>(null);
+
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyEmployee, setHistoryEmployee] = useState<Employee | null>(null);
 
   async function fetchEmployees() {
     try {
@@ -81,6 +93,16 @@ export default function EmployeesPage() {
     setSelectedEmployee(employee);
 
     setDeleteOpen(true);
+  }
+
+  function handleAddSalary(employee: Employee) {
+    setSalaryTarget(emptySalaryFor(employee));
+    setSalaryModalOpen(true);
+  }
+
+  function handleViewSalaryHistory(employee: Employee) {
+    setHistoryEmployee(employee);
+    setHistoryOpen(true);
   }
 
   const filteredEmployees = useMemo(() => {
@@ -360,6 +382,8 @@ export default function EmployeesPage() {
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onAddSalary={handleAddSalary}
+        onViewSalaryHistory={handleViewSalaryHistory}
       />
 
       {/* Employee Modal */}
@@ -376,6 +400,23 @@ export default function EmployeesPage() {
         employee={selectedEmployee}
         onClose={() => setDeleteOpen(false)}
         refreshEmployees={fetchEmployees}
+      />
+
+      {/* Add Salary Modal */}
+      {salaryTarget && (
+        <SalaryModal
+          open={salaryModalOpen}
+          onClose={() => setSalaryModalOpen(false)}
+          salary={salaryTarget}
+          refreshSalary={() => {}}
+        />
+      )}
+
+      {/* Salary History Modal */}
+      <SalaryHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        employee={historyEmployee}
       />
     </div>
   );
