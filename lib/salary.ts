@@ -20,3 +20,20 @@ export function emptySalaryFor(employee: { id?: string; name: string; basicSalar
     notes: "",
   };
 }
+
+/** Blank record with no employee chosen yet — for the master Salary page's "Add Salary" flow. */
+export function emptySalary(): SalaryRecord {
+  return {
+    id: "",
+    employeeId: "",
+    employeeName: "",
+    month: currentSalaryMonth(),
+    basicSalary: "",
+    allowances: "",
+    deductions: "",
+    bonus: "",
+    status: "Pending",
+    paymentDate: "",
+    notes: "",
+  };
+}

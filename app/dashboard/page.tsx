@@ -5,7 +5,7 @@ import { Users, ShieldCheck, BarChart2, Clock, TrendingUp, TrendingDown, Minus }
 
 const stats = [
   { label: "Total Employees", value: "124", change: "+4 this month",  trend: "up",   icon: "👨💼", color: "var(--color-primary)", bg: "var(--color-primary-soft)", border: "rgba(var(--color-primary-rgb),0.18)" },
-  { label: "Departments",     value: "9",   change: "No change",      trend: "flat", icon: "🏢",   color: "#B8901F", bg: "var(--color-gold-soft)", border: "rgba(var(--color-gold-rgb),0.3)"  },
+  { label: "Departments",     value: "9",   change: "No change",      trend: "flat", icon: "🏢",   color: "#8F6210", bg: "var(--color-gold-soft)", border: "rgba(var(--color-gold-rgb),0.3)"  },
   { label: "On Leave Today",  value: "7",   change: "+2 vs yesterday", trend: "up",  icon: "📅",   color: "#dc2626", bg: "rgba(220,38,38,0.08)",   border: "rgba(220,38,38,0.15)"  },
   { label: "Present Today",   value: "101", change: "81% attendance", trend: "down", icon: "✅",   color: "#059669", bg: "rgba(5,150,105,0.08)",   border: "rgba(5,150,105,0.15)"  },
 ];
@@ -56,7 +56,7 @@ export default function DashboardPage() {
           <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginTop: "0.25rem" }}>{today}</p>
         </div>
         <div className="card" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem" }}>
-          <div style={{ width: "1.75rem", height: "1.75rem", borderRadius: "50%", background: "var(--gradient-brand)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, color: "#fff" }}>
+          <div style={{ width: "1.75rem", height: "1.75rem", borderRadius: "50%", background: "var(--gradient-identity)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, color: "#fff" }}>
             {name.charAt(0).toUpperCase()}
           </div>
           <div>

@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Building2, CalendarCheck,
   CalendarDays, UserCog, UserCircle, ShieldCheck, LogOut, X,
-  Receipt, Settings, ChevronDown, PanelLeftClose, PanelLeftOpen,
+  Receipt, Settings, ChevronDown, PanelLeftClose, PanelLeftOpen, Wallet,
 } from "lucide-react";
 
 const TOP_NAV_ITEMS = [
@@ -22,6 +22,7 @@ const TOP_NAV_ITEMS = [
 const ADMIN_NAV_ITEMS = [
   { href: "/dashboard/users",    label: "Users & Permissions", icon: UserCog,     permission: "users"    },
   { href: "/dashboard/roles",    label: "Roles",               icon: ShieldCheck, permission: "roles"    },
+  { href: "/dashboard/salary",   label: "Salary",              icon: Wallet,      permission: "salary"   },
   { href: "/dashboard/expenses", label: "Expenses",            icon: Receipt,     permission: "expenses" },
   { href: "/dashboard/settings", label: "Settings",            icon: Settings,    permission: "settings" },
 ];
@@ -106,7 +107,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: Props) {
         {/* Brand */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: mini ? "center" : "space-between", padding: mini ? "1.375rem 0.75rem" : "1.375rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
-            <div style={{ width: "2.125rem", height: "2.125rem", borderRadius: "0.625rem", background: "var(--gradient-brand)", boxShadow: "0 4px 12px rgba(var(--color-accent-rgb),0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.875rem", color: "#fff", flexShrink: 0 }}>
+            <div style={{ width: "2.125rem", height: "2.125rem", borderRadius: "0.625rem", background: "var(--gradient-identity)", boxShadow: "0 4px 12px rgba(var(--color-identity-rgb),0.45)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.875rem", color: "#fff", flexShrink: 0 }}>
               E
             </div>
             {!mini && (
@@ -196,7 +197,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: Props) {
         {/* User footer */}
         <div style={{ padding: mini ? "0.75rem 0.5rem" : "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: mini ? "center" : "flex-start", gap: "0.625rem", padding: mini ? "0.5rem" : "0.625rem 0.75rem", borderRadius: "0.625rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <div title={mini ? name : undefined} style={{ width: "2rem", height: "2rem", borderRadius: "50%", background: "var(--gradient-brand)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.6875rem", flexShrink: 0 }}>
+            <div title={mini ? name : undefined} style={{ width: "2rem", height: "2rem", borderRadius: "50%", background: "var(--gradient-identity)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.6875rem", flexShrink: 0 }}>
               {initials}
             </div>
             {!mini && (

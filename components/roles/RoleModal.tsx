@@ -25,7 +25,7 @@ interface Props {
 const PERMISSION_GROUPS = [
   { group: "Core",       keys: ["dashboard", "profile"] },
   { group: "HR & People",keys: ["employees", "departments", "attendance", "leaves"] },
-  { group: "System",     keys: ["users", "roles", "expenses", "settings", "reports"] },
+  { group: "System",     keys: ["users", "roles", "salary", "expenses", "settings", "reports"] },
 ];
 
 export default function RoleModal({ open, onClose, role: editRole, refreshRoles }: Props) {

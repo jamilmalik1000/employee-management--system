@@ -2,28 +2,39 @@
 
 import { useEffect, useState } from "react";
 import {
-  X, Plus, CalendarDays, DollarSign, ClipboardList, FileText, Wallet,
+  X, Plus, User, CalendarDays, DollarSign, ClipboardList, FileText, Wallet,
   AlertCircle, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SalaryRecord } from "@/types/salary";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut, labelStyle, textareaBase } from "@/lib/ui";
 
+interface EmployeeOption {
+  id?: string;
+  name: string;
+  basicSalary?: number | "";
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
   salary: SalaryRecord;
   refreshSalary: () => void;
+  allowEmployeeSelect?: boolean;
 }
 
 const STATUS_OPTIONS = ["Pending", "Paid"];
 
-export default function SalaryModal({ open, onClose, salary, refreshSalary }: Props) {
+export default function SalaryModal({ open, onClose, salary, refreshSalary, allowEmployeeSelect }: Props) {
   const isEdit = !!salary.id;
+  const showEmployeePicker = !!allowEmployeeSelect && !isEdit;
 
   const [form, setForm] = useState<SalaryRecord>(salary);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [employees, setEmployees] = useState<EmployeeOption[]>([]);
+  const [empLoading, setEmpLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -31,10 +42,32 @@ export default function SalaryModal({ open, onClose, salary, refreshSalary }: Pr
     setError("");
   }, [open, salary]);
 
+  useEffect(() => {
+    if (!open || !showEmployeePicker) return;
+    setEmpLoading(true);
+    fetch("/api/employees/list")
+      .then((r) => r.json())
+      .then((data) => setEmployees(Array.isArray(data) ? data : []))
+      .catch(() => setEmployees([]))
+      .finally(() => setEmpLoading(false));
+  }, [open, showEmployeePicker]);
+
   if (!open) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    if (name === "employeeId") {
+      const selected = employees.find((emp) => emp.id === value);
+      setForm((prev) => ({
+        ...prev,
+        employeeId: value,
+        employeeName: selected?.name || "",
+        basicSalary: selected?.basicSalary || "",
+      }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -46,6 +79,7 @@ export default function SalaryModal({ open, onClose, salary, refreshSalary }: Pr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (showEmployeePicker && !form.employeeId) { setError("Please select an employee."); return; }
     if (!isEdit && !form.month) { setError("Month is required."); return; }
     if (!form.basicSalary || Number(form.basicSalary) <= 0) { setError("Basic salary must be a positive number."); return; }
     if (!form.status) { setError("Please select a status."); return; }
@@ -113,7 +147,7 @@ export default function SalaryModal({ open, onClose, salary, refreshSalary }: Pr
               {isEdit ? "Edit Salary Record" : "Add Salary"}
             </h2>
             <p style={{ fontSize: "0.8125rem", color: "#c4b5fd", marginTop: "0.375rem" }}>
-              {form.employeeName}
+              {form.employeeName || "Select an employee below"}
             </p>
           </div>
           <button
@@ -132,6 +166,26 @@ export default function SalaryModal({ open, onClose, salary, refreshSalary }: Pr
             <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.875rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: "0.125rem" }} />
               <span>{error}</span>
+            </div>
+          )}
+
+          {/* Employee */}
+          {showEmployeePicker && (
+            <div>
+              <label style={labelStyle}>Employee <span style={{ color: "#ef4444" }}>*</span></label>
+              <div style={inputWrap}>
+                <User size={14} style={iconStyle} />
+                <select
+                  name="employeeId" value={form.employeeId} onChange={handleChange}
+                  style={{ ...inputBase, paddingRight: "2.5rem", appearance: "none", cursor: "pointer" }}
+                  onFocus={focusIn} onBlur={focusOut}
+                >
+                  <option value="">{empLoading ? "Loading employees…" : "Select Employee"}</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
 

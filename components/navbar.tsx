@@ -2,21 +2,8 @@
 
 import { useAuth } from "@/Context/AuthContext";
 import { useTheme } from "@/Context/ThemeContext";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Bell, LogOut, Menu, Sun, Moon } from "lucide-react";
-
-const pageTitles: Record<string, { title: string; sub: string }> = {
-  "/dashboard":             { title: "Dashboard",        sub: "Welcome back — here's your overview"   },
-  "/dashboard/employees":   { title: "Employees",        sub: "Manage your workforce"                 },
-  "/dashboard/departments": { title: "Departments",      sub: "Organise teams and departments"        },
-  "/dashboard/attendence":  { title: "Attendance",       sub: "Track daily attendance records"        },
-  "/dashboard/leaves":      { title: "Leave Requests",   sub: "Review and manage leave requests"      },
-  "/dashboard/users":       { title: "Users & Permissions", sub: "Manage system users and roles"      },
-  "/dashboard/roles":       { title: "Roles",            sub: "Define roles and permissions"          },
-  "/dashboard/expenses":    { title: "Expenses",         sub: "Track and manage company expenses"     },
-  "/dashboard/settings":    { title: "Settings",         sub: "Manage your company profile"           },
-  "/dashboard/profile":     { title: "Profile",          sub: "Your account information"              },
-};
 
 interface Props {
   onMenuClick: () => void;
@@ -25,12 +12,10 @@ interface Props {
 export default function Navbar({ onMenuClick }: Props) {
   const { user, logout, role } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const router   = useRouter();
-  const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = () => { logout(); router.push("/login"); };
 
-  const page        = pageTitles[pathname] ?? { title: "Dashboard", sub: "" };
   const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
   const initials    = displayName.slice(0, 2).toUpperCase();
   const roleLabel   = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Employee";
@@ -49,11 +34,6 @@ export default function Navbar({ onMenuClick }: Props) {
         >
           <Menu size={18} />
         </button>
-
-        <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-text-primary)", margin: 0, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{page.title}</h1>
-          <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} className="hidden sm:block">{page.sub}</p>
-        </div>
       </div>
 
       {/* Right */}
@@ -84,7 +64,7 @@ export default function Navbar({ onMenuClick }: Props) {
           className="hidden sm:flex"
           style={{ alignItems: "center", gap: "0.5rem", padding: "0.375rem 0.75rem", background: "var(--color-bg-surface-alt)", border: "1px solid var(--color-border)", borderRadius: "0.75rem" }}
         >
-          <div style={{ width: "1.75rem", height: "1.75rem", borderRadius: "50%", background: "var(--gradient-brand)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+          <div style={{ width: "1.75rem", height: "1.75rem", borderRadius: "50%", background: "var(--gradient-identity)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>
             {initials}
           </div>
           <div style={{ lineHeight: 1.25 }}>
