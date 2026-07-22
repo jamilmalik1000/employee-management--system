@@ -9,16 +9,12 @@ export async function GET(req: NextRequest) {
       ? await adminDb.collection("salary").where("employeeId", "==", employeeId).get()
       : await adminDb.collection("salary").get();
 
-    const salary: Array<Record<string, unknown> & { id: string }> = snapshot.docs
-      .map<Record<string, unknown> & { id: string }>((doc) => ({
+    const salary = snapshot.docs
+      .map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }))
-      .sort((a, b) => {
-        const aMonth = typeof a.month === "string" ? a.month : "";
-        const bMonth = typeof b.month === "string" ? b.month : "";
-        return bMonth.localeCompare(aMonth);
-      });
+      .sort((a: any, b: any) => (b.month || "").localeCompare(a.month || ""));
 
     return NextResponse.json(salary, { status: 200 });
   } catch (error) {

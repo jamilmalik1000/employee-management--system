@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
-import { getErrorMessage } from "@/lib/errors";
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -26,11 +25,11 @@ export async function DELETE(req: NextRequest) {
       success: true,
       message: "User deleted successfully.",
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
-        message: getErrorMessage(error, "Failed to delete user."),
+        message: error.message,
       },
       { status: 500 }
     );

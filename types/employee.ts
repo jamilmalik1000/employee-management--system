@@ -25,7 +25,7 @@ export interface Employee {
 
   isActive: boolean;
 
-  createdAt?: unknown;
+  createdAt?: any;
 
-  updatedAt?: unknown;
+  updatedAt?: any;
 }

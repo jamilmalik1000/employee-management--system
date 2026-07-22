@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
-import { getErrorMessage } from "@/lib/errors";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -86,11 +85,11 @@ export async function PUT(req: NextRequest) {
       success: true,
       message: "User updated successfully.",
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
-        message: getErrorMessage(error, "Failed to update user."),
+        message: error.message,
       },
       { status: 500 }
     );

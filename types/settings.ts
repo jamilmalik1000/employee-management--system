@@ -11,5 +11,5 @@ export interface CompanySettings {
 
   timezone: string;
 
-  updatedAt?: unknown;
+  updatedAt?: any;
 }

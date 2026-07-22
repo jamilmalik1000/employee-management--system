@@ -9,13 +9,11 @@ import {
 } from "react";
 
 export type Theme = "default" | "light" | "dark";
-export type ResolvedTheme = "light" | "dark";
 
 const STORAGE_KEY = "ems-theme";
 
 interface ThemeContextType {
   theme: Theme;
-  resolvedTheme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
 }
 
@@ -23,7 +21,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("default");
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
@@ -34,7 +31,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const applyResolvedTheme = () => {
       const resolved = theme === "default" ? (media.matches ? "dark" : "light") : theme;
-      setResolvedTheme(resolved);
       document.documentElement.setAttribute("data-theme", resolved);
     };
     applyResolvedTheme();
@@ -48,7 +44,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

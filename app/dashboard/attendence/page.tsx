@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, X, UserX } from "lucide-react";
 import { useAuth } from "@/Context/AuthContext";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
@@ -10,9 +10,6 @@ import CheckInOutCard from "@/components/attendance/CheckInOutCard";
 import { Attendance } from "@/types/attendance";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
 import { todayLocalISO } from "@/lib/date";
-import PageIntro from "@/components/ui/PageIntro";
-import { AppLoader, LoadError } from "@/components/ui/AppState";
-import PermissionGuard from "@/components/PermissionGuard";
 
 const emptyAttendance: Attendance = {
   id: "", employeeId: "", employeeName: "", date: todayLocalISO(),
@@ -20,17 +17,17 @@ const emptyAttendance: Attendance = {
 };
 
 export default function AttendancePage() {
-  return <PermissionGuard permission="attendance"><AttendanceContent /></PermissionGuard>;
-}
-
-function AttendanceContent() {
-  const { role, user, permissions, loading: authLoading } = useAuth();
+  const { role, user, loading: authLoading } = useAuth();
 
   if (authLoading) {
-    return <AppLoader label="Loading attendance…" />;
+    return (
+      <div className="page-root">
+        <p style={{ fontSize: "0.875rem", color: "#94a3b8" }}>Loading…</p>
+      </div>
+    );
   }
 
-  const isManagement = role === "admin" || role === "hr" || permissions.includes("employees");
+  const isManagement = role === "admin" || role === "hr";
 
   return isManagement ? <ManagementView /> : <SelfServiceView userId={user?.uid} />;
 }
@@ -42,7 +39,6 @@ function AttendanceContent() {
 function ManagementView() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState<Attendance>(emptyAttendance);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -54,34 +50,14 @@ function ManagementView() {
 
   const fetchAttendance = async () => {
     setLoading(true);
-    setLoadError("");
     try {
       const res = await fetch("/api/attendance/list");
-
-      if (!res.ok) {
-        let message = "Failed to load attendance records.";
-        try {
-          const errorData = (await res.json()) as { message?: string };
-          message = errorData.message || message;
-        } catch {
-          // Keep the module-specific fallback when the error body is not JSON.
-        }
-        throw new Error(message);
-      }
-
       const data = await res.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error("The attendance list returned an invalid response.");
-      }
-
-      setAttendance(data);
+      setAttendance(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
-      setLoadError(err instanceof Error ? err.message : "Failed to load attendance records.");
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => { fetchAttendance(); }, []);
@@ -110,12 +86,20 @@ function ManagementView() {
   return (
     <div className="page-root">
 
-      <PageIntro description="Track and manage daily attendance records" actions={
-        <button onClick={handleAdd} className="btn btn-primary">
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Attendance Management</h1>
+          <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>Track and manage daily attendance records</p>
+        </div>
+        <button
+          onClick={handleAdd}
+          style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.25rem", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}
+        >
           <Plus size={16} />
           Add Attendance
         </button>
-      } />
+      </div>
 
       {/* Stat cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
@@ -130,7 +114,7 @@ function ManagementView() {
               {s.icon}
             </div>
             <div>
-              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{loading || loadError ? "—" : s.value}</p>
+              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{s.value}</p>
               <p style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600, marginTop: "0.25rem" }}>{s.label}</p>
             </div>
           </div>
@@ -146,7 +130,6 @@ function ManagementView() {
           <Search size={14} style={iconStyle} />
           <input
             type="text"
-            aria-label="Search attendance by employee"
             placeholder="Search by employee…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -159,7 +142,6 @@ function ManagementView() {
         <div style={{ position: "relative" }}>
           <input
             type="date"
-            aria-label="Filter attendance by date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
             style={{ ...inputBase, paddingLeft: "0.875rem", paddingRight: dateFilter ? "2.25rem" : "0.875rem" }}
@@ -170,9 +152,8 @@ function ManagementView() {
             <button
               type="button"
               onClick={() => setDateFilter("")}
-              aria-label="Clear date filter"
               title="Show all dates"
-              style={{ position: "absolute", right: "0.25rem", top: "50%", transform: "translateY(-50%)", width: "2.25rem", height: "2.25rem", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderRadius: "0.5rem", cursor: "pointer", color: "var(--color-text-muted)", display: "flex" }}
+              style={{ position: "absolute", right: "0.625rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex" }}
             >
               <X size={14} />
             </button>
@@ -181,7 +162,6 @@ function ManagementView() {
 
         <div style={{ position: "relative" }}>
           <select
-            aria-label="Filter attendance by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{ ...inputBase, paddingLeft: "0.875rem", paddingRight: "2.5rem", appearance: "none", cursor: "pointer" }}
@@ -200,20 +180,7 @@ function ManagementView() {
       </div>
 
       {/* Table */}
-      {loadError ? (
-        <div className="card">
-          <LoadError message={loadError} onRetry={fetchAttendance} />
-        </div>
-      ) : (
-        <AttendanceTable
-          attendance={filteredAttendance}
-          loading={loading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          emptyTitle="No attendance matches your filters"
-          emptyDescription="Adjust or clear the filters to see more attendance records."
-        />
-      )}
+      <AttendanceTable attendance={filteredAttendance} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
 
       {/* Modals */}
       <AttendanceModal
@@ -241,115 +208,37 @@ function SelfServiceView({ userId }: { userId?: string }) {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [loadError, setLoadError] = useState("");
-
-  const loadSelfService = useCallback(async () => {
-    if (!userId) {
-      setLoading(false);
-      setLoadError("");
-      setEmployee(null);
-      setAttendance([]);
-      setNotFound(true);
-      return;
-    }
-
-    setLoading(true);
-    setLoadError("");
-    setNotFound(false);
-
-    try {
-      const res = await fetch(`/api/employees/list?userId=${encodeURIComponent(userId)}`);
-
-      if (!res.ok) {
-        let message = "Failed to load your employee profile.";
-        try {
-          const errorData = (await res.json()) as { message?: string };
-          message = errorData.message || message;
-        } catch {
-          // Keep the module-specific fallback when the error body is not JSON.
-        }
-        throw new Error(message);
-      }
-
-      const data = await res.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error("Your employee profile returned an invalid response.");
-      }
-
-      const own = data[0];
-
-      if (!own) {
-        setEmployee(null);
-        setAttendance([]);
-        setNotFound(true);
-        return;
-      }
-
-      setEmployee({ id: own.id, name: own.name });
-
-      const attRes = await fetch(`/api/attendance/list?employeeId=${encodeURIComponent(own.id)}`);
-
-      if (!attRes.ok) {
-        let message = "Failed to load your attendance history.";
-        try {
-          const errorData = (await attRes.json()) as { message?: string };
-          message = errorData.message || message;
-        } catch {
-          // Keep the module-specific fallback when the error body is not JSON.
-        }
-        throw new Error(message);
-      }
-
-      const attData = await attRes.json();
-
-      if (!Array.isArray(attData)) {
-        throw new Error("Your attendance history returned an invalid response.");
-      }
-
-      setAttendance(attData);
-    } catch (err) {
-      console.error(err);
-      setLoadError(err instanceof Error ? err.message : "Failed to load your attendance workspace.");
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
 
   useEffect(() => {
-    void loadSelfService();
-  }, [loadSelfService]);
+    if (!userId) { setLoading(false); setNotFound(true); return; }
+
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/employees/list?userId=${encodeURIComponent(userId)}`);
+        const data = await res.json();
+        const own = Array.isArray(data) ? data[0] : null;
+
+        if (!own) { setNotFound(true); setLoading(false); return; }
+
+        setEmployee({ id: own.id, name: own.name });
+
+        const attRes = await fetch(`/api/attendance/list?employeeId=${encodeURIComponent(own.id)}`);
+        const attData = await attRes.json();
+        setAttendance(Array.isArray(attData) ? attData : []);
+      } catch (err) {
+        console.error(err);
+        setNotFound(true);
+      }
+      setLoading(false);
+    })();
+  }, [userId]);
 
   const refresh = async () => {
     if (!employee) return;
-
-    setLoadError("");
-
-    try {
-      const attRes = await fetch(`/api/attendance/list?employeeId=${encodeURIComponent(employee.id)}`);
-
-      if (!attRes.ok) {
-        let message = "Failed to refresh your attendance history.";
-        try {
-          const errorData = (await attRes.json()) as { message?: string };
-          message = errorData.message || message;
-        } catch {
-          // Keep the module-specific fallback when the error body is not JSON.
-        }
-        throw new Error(message);
-      }
-
-      const attData = await attRes.json();
-
-      if (!Array.isArray(attData)) {
-        throw new Error("Your attendance history returned an invalid response.");
-      }
-
-      setAttendance(attData);
-    } catch (err) {
-      console.error(err);
-      setLoadError(err instanceof Error ? err.message : "Failed to refresh your attendance history.");
-    }
+    const attRes = await fetch(`/api/attendance/list?employeeId=${encodeURIComponent(employee.id)}`);
+    const attData = await attRes.json();
+    setAttendance(Array.isArray(attData) ? attData : []);
   };
 
   const todayRecord = attendance.find((a) => a.date === todayLocalISO()) || null;
@@ -357,15 +246,15 @@ function SelfServiceView({ userId }: { userId?: string }) {
   return (
     <div className="page-root">
 
-      <PageIntro description="Check in, check out, and review your attendance history" />
+      {/* Header */}
+      <div>
+        <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>My Attendance</h1>
+        <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>Check in, check out, and review your attendance history</p>
+      </div>
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: "3rem 1rem" }}>
           <p style={{ fontSize: "0.875rem", color: "#94a3b8" }}>Loading…</p>
-        </div>
-      ) : loadError ? (
-        <div className="card">
-          <LoadError message={loadError} onRetry={loadSelfService} />
         </div>
       ) : notFound || !employee ? (
         <div className="card" style={{ padding: "3rem 1.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", textAlign: "center" }}>

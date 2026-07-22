@@ -1,16 +1,18 @@
 "use client";
 
 import SettingsForm from "@/components/settings/SettingsForm";
-import PageIntro from "@/components/ui/PageIntro";
-import PermissionGuard from "@/components/PermissionGuard";
 
 export default function SettingsPage() {
   return (
-    <PermissionGuard permission="settings"><div className="page-root">
+    <div className="page-root">
 
-      <PageIntro description="Manage your company profile" />
+      {/* Header */}
+      <div>
+        <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Settings</h1>
+        <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>Manage your company profile</p>
+      </div>
 
       <SettingsForm />
-    </div></PermissionGuard>
+    </div>
   );
 }

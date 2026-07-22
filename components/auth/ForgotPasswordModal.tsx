@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { X, Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { useDialog } from "@/hooks/useDialog";
 
 interface Props {
   open: boolean;
@@ -16,21 +15,14 @@ export default function ForgotPasswordModal({ open, onClose }: Props) {
   const [email, setEmail]     = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent]       = useState(false);
-  const successRef = useRef<HTMLDivElement>(null);
+
+  if (!open) return null;
 
   const handleClose = () => {
-    if (loading) return;
     setEmail("");
     setSent(false);
     onClose();
   };
-  const dialogRef = useDialog<HTMLDivElement>(open, handleClose);
-
-  useEffect(() => {
-    if (open && sent) successRef.current?.focus();
-  }, [open, sent]);
-
-  if (!open) return null;
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,26 +31,20 @@ export default function ForgotPasswordModal({ open, onClose }: Props) {
       await sendPasswordResetEmail(auth, email);
       setSent(true);
       toast.success("Password reset email sent!");
-    } catch {
-      toast.error("Could not send the reset email. Check the address and try again.");
-    } finally {
-      setLoading(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset email.");
     }
+    setLoading(false);
   };
 
   return (
     <div
       style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, padding: "1rem" }}
-      onClick={(e) => e.target === e.currentTarget && !loading && handleClose()}
+      onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="forgot-password-modal-title"
-        tabIndex={-1}
         className="animate-slideUp"
-        style={{ width: "100%", maxWidth: "440px", maxHeight: "92dvh", background: "#fff", borderRadius: "1.5rem", boxShadow: "0 32px 80px rgba(0,0,0,0.22)", overflowY: "auto" }}
+        style={{ width: "100%", maxWidth: "440px", background: "#fff", borderRadius: "1.5rem", boxShadow: "0 32px 80px rgba(0,0,0,0.22)", overflow: "hidden" }}
       >
         {/* Top stripe */}
         <div style={{ height: "5px", background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)" }} />
@@ -70,17 +56,14 @@ export default function ForgotPasswordModal({ open, onClose }: Props) {
               <Mail size={18} color="#fff" />
             </div>
             <div>
-              <h2 id="forgot-password-modal-title" style={{ fontSize: "1.125rem", fontWeight: 800, color: "#fff", margin: 0 }}>Forgot Password?</h2>
+              <h2 style={{ fontSize: "1.125rem", fontWeight: 800, color: "#fff", margin: 0 }}>Forgot Password?</h2>
               <p style={{ fontSize: "0.8rem", color: "#c4b5fd", margin: "0.25rem 0 0" }}>
-                We’ll send a reset link to your email
+                We'll send a reset link to your email
               </p>
             </div>
           </div>
           <button
-            type="button"
-            aria-label="Close password reset form"
             onClick={handleClose}
-            disabled={loading}
             style={{ width: "2.25rem", height: "2.25rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.12)", color: "#c4b5fd" }}
           >
             <X size={16} />
@@ -91,14 +74,7 @@ export default function ForgotPasswordModal({ open, onClose }: Props) {
         <div style={{ padding: "2rem" }}>
           {sent ? (
             /* ── Success state ── */
-            <div
-              ref={successRef}
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              tabIndex={-1}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1rem 0 0.5rem", textAlign: "center", outline: "none" }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1rem 0 0.5rem", textAlign: "center" }}>
               <div style={{ width: "4rem", height: "4rem", borderRadius: "50%", background: "rgba(5,150,105,0.08)", border: "2px solid rgba(5,150,105,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <CheckCircle2 size={32} color="#059669" />
               </div>
@@ -110,7 +86,7 @@ export default function ForgotPasswordModal({ open, onClose }: Props) {
                 </p>
               </div>
               <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>
-                Didn’t receive it? Check your spam folder.
+                Didn't receive it? Check your spam folder.
               </p>
               <button
                 onClick={handleClose}
@@ -123,20 +99,17 @@ export default function ForgotPasswordModal({ open, onClose }: Props) {
             /* ── Form state ── */
             <form onSubmit={handleReset} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <p style={{ fontSize: "0.875rem", color: "#64748b", margin: 0, lineHeight: 1.6 }}>
-                Enter the email address associated with your account and we’ll send you a link to reset your password.
+                Enter the email address associated with your account and we'll send you a link to reset your password.
               </p>
 
               {/* Email input */}
               <div>
-                <label htmlFor="forgot-password-email" style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
+                <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
                   Email Address <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <div style={{ position: "relative" }}>
                   <Mail size={15} style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }} />
                   <input
-                    id="forgot-password-email"
-                    autoComplete="email"
-                    data-autofocus
                     type="email"
                     placeholder="you@example.com"
                     value={email}
@@ -157,7 +130,6 @@ export default function ForgotPasswordModal({ open, onClose }: Props) {
                 <button
                   type="button"
                   onClick={handleClose}
-                  disabled={loading}
                   style={{ flex: 1, padding: "0.8125rem", fontSize: "0.9rem", fontWeight: 600, borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: "pointer" }}
                 >
                   Cancel

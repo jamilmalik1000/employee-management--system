@@ -5,7 +5,6 @@ import { LogIn, LogOut, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Attendance } from "@/types/attendance";
 import { todayLocalISO, nowLocalTime } from "@/lib/date";
-import { getErrorMessage } from "@/lib/errors";
 
 interface Props {
   employeeId: string;
@@ -34,8 +33,8 @@ export default function CheckInOutCard({ employeeId, employeeName, todayRecord, 
       if (!res.ok) throw new Error(data.message || "Failed to check in.");
       toast.success(`Checked in at ${data.checkIn}`);
       onChange();
-    } catch (err: unknown) {
-      toast.error(getErrorMessage(err, "Failed to check in."));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to check in.");
     }
     setLoading(false);
   };
@@ -52,8 +51,8 @@ export default function CheckInOutCard({ employeeId, employeeName, todayRecord, 
       if (!res.ok) throw new Error(data.message || "Failed to check out.");
       toast.success(`Checked out at ${data.checkOut}`);
       onChange();
-    } catch (err: unknown) {
-      toast.error(getErrorMessage(err, "Failed to check out."));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to check out.");
     }
     setLoading(false);
   };
@@ -66,7 +65,7 @@ export default function CheckInOutCard({ employeeId, employeeName, todayRecord, 
 
       {!hasCheckedIn && (
         <>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", margin: "0 0 1rem" }}>You haven’t checked in yet</h2>
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", margin: "0 0 1rem" }}>You haven't checked in yet</h2>
           <button
             onClick={handleCheckIn}
             disabled={loading}
@@ -81,7 +80,7 @@ export default function CheckInOutCard({ employeeId, employeeName, todayRecord, 
       {hasCheckedIn && !hasCheckedOut && (
         <>
           <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", margin: "0 0 0.375rem" }}>Checked in at {todayRecord?.checkIn}</h2>
-          <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.7)", margin: "0 0 1rem" }}>Don’t forget to check out at the end of your day.</p>
+          <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.7)", margin: "0 0 1rem" }}>Don't forget to check out at the end of your day.</p>
           <button
             onClick={handleCheckOut}
             disabled={loading}

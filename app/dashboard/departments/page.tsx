@@ -7,20 +7,12 @@ import DepartmentModal from "@/components/departments/DepartmentModal";
 import DeleteDepartmentModal from "@/components/departments/DeleteDepartmentModal";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
 import { Department } from "@/types/department";
-import PageIntro from "@/components/ui/PageIntro";
-import { LoadError } from "@/components/ui/AppState";
-import PermissionGuard from "@/components/PermissionGuard";
 
 const emptyDepartment: Department = { id: "", name: "", description: "", isActive: true };
 
 export default function DepartmentsPage() {
-  return <PermissionGuard permission="departments"><DepartmentsContent /></PermissionGuard>;
-}
-
-function DepartmentsContent() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department>(emptyDepartment);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -29,34 +21,14 @@ function DepartmentsContent() {
 
   const fetchDepartments = async () => {
     setLoading(true);
-    setLoadError("");
     try {
       const res = await fetch("/api/departments/list");
-
-      if (!res.ok) {
-        let message = "Failed to load departments.";
-        try {
-          const errorData = (await res.json()) as { message?: string };
-          message = errorData.message || message;
-        } catch {
-          // Keep the module-specific fallback when the error body is not JSON.
-        }
-        throw new Error(message);
-      }
-
       const data = await res.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error("The department list returned an invalid response.");
-      }
-
-      setDepartments(data);
+      setDepartments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
-      setLoadError(err instanceof Error ? err.message : "Failed to load departments.");
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => { fetchDepartments(); }, []);
@@ -81,12 +53,20 @@ function DepartmentsContent() {
   return (
     <div className="page-root">
 
-      <PageIntro description="Organize your company into departments" actions={
-        <button onClick={handleAdd} className="btn btn-primary">
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Department Management</h1>
+          <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>Organize your company into departments</p>
+        </div>
+        <button
+          onClick={handleAdd}
+          style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.25rem", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}
+        >
           <Plus size={16} />
           Add Department
         </button>
-      } />
+      </div>
 
       {/* Stat cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
@@ -100,7 +80,7 @@ function DepartmentsContent() {
               {s.icon}
             </div>
             <div>
-              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{loading || loadError ? "—" : s.value}</p>
+              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{s.value}</p>
               <p style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600, marginTop: "0.25rem" }}>{s.label}</p>
             </div>
           </div>
@@ -122,7 +102,6 @@ function DepartmentsContent() {
           <Search size={14} style={iconStyle} />
           <input
             type="text"
-            aria-label="Search departments"
             placeholder="Search departments..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -134,20 +113,7 @@ function DepartmentsContent() {
       </div>
 
       {/* Table */}
-      {loadError ? (
-        <div className="card">
-          <LoadError message={loadError} onRetry={fetchDepartments} />
-        </div>
-      ) : (
-        <DepartmentTable
-          departments={filteredDepartments}
-          loading={loading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          emptyTitle={search ? "No departments match your search" : undefined}
-          emptyDescription={search ? "Try a different department name or description." : undefined}
-        />
-      )}
+      <DepartmentTable departments={filteredDepartments} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
 
       {/* Modals */}
       <DepartmentModal

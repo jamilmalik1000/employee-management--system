@@ -25,7 +25,7 @@ export interface SalaryRecord {
 
   notes?: string;
 
-  createdAt?: unknown;
+  createdAt?: any;
 
-  updatedAt?: unknown;
+  updatedAt?: any;
 }

@@ -11,14 +11,12 @@ interface Props {
   loading: boolean;
   onEdit: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
-  emptyTitle?: string;
-  emptyDescription?: string;
 }
 
 const statusMeta: Record<string, { color: string; bg: string; border: string }> = {
-  Pending:  { color: "var(--status-warning-text)", bg: "rgba(217,119,6,0.1)", border: "rgba(217,119,6,0.22)" },
-  Approved: { color: "var(--status-success-text)", bg: "rgba(5,150,105,0.1)", border: "rgba(5,150,105,0.22)" },
-  Rejected: { color: "var(--status-danger-text)", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.22)" },
+  Pending:  { color: "#d97706", bg: "rgba(217,119,6,0.07)", border: "rgba(217,119,6,0.15)" },
+  Approved: { color: "#059669", bg: "rgba(5,150,105,0.07)", border: "rgba(5,150,105,0.15)" },
+  Rejected: { color: "#ef4444", bg: "rgba(239,68,68,0.07)", border: "rgba(239,68,68,0.15)" },
 };
 
 const defaultMeta = { color: "#6366f1", bg: "rgba(99,102,241,0.07)", border: "rgba(99,102,241,0.15)" };
@@ -28,7 +26,7 @@ function formatAmount(amount: number | "") {
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export default function ExpenseTable({ expenses, loading, onEdit, onDelete, emptyTitle = "No expenses yet", emptyDescription = 'Click "Add Expense" to log the first one.' }: Props) {
+export default function ExpenseTable({ expenses, loading, onEdit, onDelete }: Props) {
   const pagination = usePagination(expenses);
   return (
     <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
@@ -52,11 +50,11 @@ export default function ExpenseTable({ expenses, loading, onEdit, onDelete, empt
       ) : expenses.length === 0 ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "5rem 1rem", gap: "0.75rem" }}>
           <Receipt size={48} color="#e2e8f0" />
-          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>{emptyTitle}</p>
-          <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>{emptyDescription}</p>
+          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>No expenses yet</p>
+          <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>Click "Add Expense" to log the first one.</p>
         </div>
       ) : (
-        <div className="table-scroll-region" role="region" aria-label="Expenses table, scroll horizontally for more columns" tabIndex={0} style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "680px" }}>
             <thead>
               <tr style={{ background: "#f8faff", borderBottom: "1px solid #f0f2f8" }}>

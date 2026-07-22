@@ -9,9 +9,6 @@ import { toast } from "sonner";
 import { User as UserType } from "@/app/dashboard/users/page";
 import { Role } from "@/components/roles/RoleModal";
 import RoleModal from "@/components/roles/RoleModal";
-import { useDialog } from "@/hooks/useDialog";
-import { useRemoteList } from "@/hooks/useRemoteList";
-import { getErrorMessage } from "@/lib/errors";
 
 interface Props {
   open: boolean;
@@ -52,28 +49,17 @@ const focusOut = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => 
 
 export default function UserModal({ open, onClose, user, refreshUsers }: Props) {
   const isEdit = !!user.id;
+
   const [form, setForm]       = useState<UserType>(user);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
-  const requestClose = () => {
-    if (!loading) onClose();
-  };
-  const dialogRef = useDialog<HTMLDivElement>(open, requestClose);
 
   /* roles */
+  const [roles, setRoles]               = useState<Role[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
   const [roleModalOpen, setRoleModalOpen] = useState(false);
-  const {
-    items: roles,
-    loading: rolesLoading,
-    error: rolesError,
-    retry: retryRoles,
-  } = useRemoteList<Role>({
-    open,
-    url: "/api/roles/list",
-    errorMessage: "Roles could not be loaded.",
-  });
 
   /* sync form when user prop changes (open/edit different user) */
   useEffect(() => {
@@ -82,6 +68,21 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
     setShowPassword(false);
     setError("");
   }, [user]);
+
+  /* fetch roles whenever modal opens */
+  useEffect(() => {
+    if (!open) return;
+    setRolesLoading(true);
+    fetch("/api/roles/list")
+      .then((r) => r.json())
+      .then((data) => {
+        const list: Role[] = Array.isArray(data) ? data : [];
+        setRoles(list);
+        /* if current role value isn't in the list yet, keep it; otherwise fine */
+      })
+      .catch(() => {})
+      .finally(() => setRolesLoading(false));
+  }, [open]);
 
   if (!open) return null;
 
@@ -93,15 +94,18 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
     }));
   };
 
-  const handleRoleCreated = () => {
+  const handleRoleCreated = async () => {
+    /* re-fetch roles then close the nested modal */
+    const res  = await fetch("/api/roles/list");
+    const data = await res.json();
+    const list: Role[] = Array.isArray(data) ? data : [];
+    setRoles(list);
     setRoleModalOpen(false);
-    retryRoles();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.role) { setError("Please select a role."); return; }
-    if (password && password.length < 8) { setError("Password must be at least 8 characters."); return; }
     setLoading(true);
     setError("");
     try {
@@ -121,10 +125,9 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
       toast.success(isEdit ? "User updated successfully!" : "User created successfully!");
       refreshUsers();
       onClose();
-    } catch (err: unknown) {
-      const message = getErrorMessage(err, "Failed to save user.");
-      setError(message);
-      toast.error(message);
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message || "Failed to save user.");
     }
     setLoading(false);
   };
@@ -135,21 +138,16 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
         style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-        onClick={(e) => e.target === e.currentTarget && requestClose()}
+        onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="user-modal-title"
-          tabIndex={-1}
           className="animate-slideUp w-full overflow-y-auto"
           style={{ maxWidth: "560px", maxHeight: "95vh", background: "#fff", borderRadius: "1.25rem", boxShadow: "0 32px 80px rgba(0,0,0,0.18)" }}
         >
           {/* Gradient header */}
           <div style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", borderRadius: "1.25rem 1.25rem 0 0", padding: "1.75rem 2rem 1.5rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
             <div>
-              <h2 id="user-modal-title" style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", margin: 0 }}>
+              <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", margin: 0 }}>
                 {isEdit ? "Edit User" : "Add New User"}
               </h2>
               <p style={{ fontSize: "0.8125rem", color: "#c4b5fd", marginTop: "0.375rem" }}>
@@ -157,22 +155,19 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
               </p>
             </div>
             <button
-              type="button"
-              aria-label="Close user form"
-              onClick={requestClose}
-              disabled={loading}
-              style={{ width: "2.25rem", height: "2.25rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "none", cursor: loading ? "not-allowed" : "pointer", background: "rgba(255,255,255,0.12)", color: "#c4b5fd", opacity: loading ? 0.55 : 1 }}
+              onClick={onClose}
+              style={{ width: "2.25rem", height: "2.25rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.12)", color: "#c4b5fd" }}
             >
               <X size={16} />
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} aria-describedby={error ? "user-form-error" : undefined} style={{ padding: "1.75rem 2rem 2rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <form onSubmit={handleSubmit} style={{ padding: "1.75rem 2rem 2rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
             {/* Error */}
             {error && (
-              <div id="user-form-error" role="alert" style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.875rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.875rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
                 <AlertCircle size={15} style={{ flexShrink: 0, marginTop: "0.125rem" }} />
                 <span>{error}</span>
               </div>
@@ -181,12 +176,10 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
             {/* Name + Email */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
-                <label htmlFor="user-name" style={labelStyle}>Full Name <span style={{ color: "#ef4444" }}>*</span></label>
+                <label style={labelStyle}>Full Name <span style={{ color: "#ef4444" }}>*</span></label>
                 <div style={inputWrap}>
                   <User size={14} style={iconStyle} />
                   <input
-                    id="user-name"
-                    autoComplete="name"
                     type="text" name="name" placeholder="John Doe"
                     value={form.name} onChange={handleChange} required
                     style={inputBase} onFocus={focusIn} onBlur={focusOut}
@@ -194,12 +187,10 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
                 </div>
               </div>
               <div>
-                <label htmlFor="user-email" style={labelStyle}>Email Address <span style={{ color: "#ef4444" }}>*</span></label>
+                <label style={labelStyle}>Email Address <span style={{ color: "#ef4444" }}>*</span></label>
                 <div style={inputWrap}>
                   <Mail size={14} style={iconStyle} />
                   <input
-                    id="user-email"
-                    autoComplete="email"
                     type="email" name="email" placeholder="john@company.com"
                     value={form.email} onChange={handleChange} required
                     style={inputBase} onFocus={focusIn} onBlur={focusOut}
@@ -210,59 +201,44 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
 
             {/* Password */}
             <div>
-              <label htmlFor="user-password" style={labelStyle}>
+              <label style={labelStyle}>
                 Password {isEdit && <span style={{ color: "#94a3b8", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>(leave blank to keep current)</span>}
                 {!isEdit && <span style={{ color: "#ef4444" }}> *</span>}
               </label>
               <div style={inputWrap}>
                 <Lock size={14} style={iconStyle} />
                 <input
-                  id="user-password"
-                  autoComplete="new-password"
                   type={showPassword ? "text" : "password"} placeholder={isEdit ? "••••••••" : "Min. 8 characters"}
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   required={!isEdit}
-                  minLength={8}
-                  aria-describedby="user-password-hint"
                   style={{ ...inputBase, paddingRight: "2.5rem" }} onFocus={focusIn} onBlur={focusOut}
                 />
                 <button
                   type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((p) => !p)}
                   style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 0, display: "flex", alignItems: "center" }}
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-              <p id="user-password-hint" style={{ marginTop: "0.375rem", color: "var(--color-text-muted)", fontSize: "0.75rem" }}>
-                Use at least 8 characters.
-              </p>
             </div>
 
             {/* Role dropdown + create button */}
             <div>
-              <label htmlFor="user-role" style={labelStyle}>Role <span style={{ color: "#ef4444" }}>*</span></label>
+              <label style={labelStyle}>Role <span style={{ color: "#ef4444" }}>*</span></label>
               <div style={{ display: "flex", gap: "0.625rem", alignItems: "stretch" }}>
                 <div style={{ position: "relative", flex: 1 }}>
                   <ShieldCheck size={14} style={iconStyle} />
                   <select
-                    id="user-role"
                     name="role"
                     value={form.role}
                     onChange={handleChange}
                     required
-                    disabled={rolesLoading}
-                    aria-invalid={!!error && !form.role}
-                    aria-describedby={[
-                      error && !form.role ? "user-form-error" : "",
-                      rolesError ? "user-roles-error" : "",
-                    ].filter(Boolean).join(" ") || undefined}
-                    style={{ ...inputBase, paddingRight: "2.5rem", appearance: "none", cursor: rolesLoading ? "not-allowed" : "pointer", opacity: rolesLoading ? 0.7 : 1 }}
+                    style={{ ...inputBase, paddingRight: "2.5rem", appearance: "none", cursor: "pointer" }}
                     onFocus={focusIn} onBlur={focusOut}
                   >
                     <option value="" disabled>
-                      {rolesError ? "Roles unavailable" : rolesLoading ? "Loading roles…" : "Select a role"}
+                      {rolesLoading ? "Loading roles…" : "Select a role"}
                     </option>
                     {roles.map((r) => (
                       <option key={r.id} value={r.name}>
@@ -277,38 +253,26 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
                 <button
                   type="button"
                   title="Create a new role"
-                  aria-label="Create a new role"
                   onClick={() => setRoleModalOpen(true)}
-                  disabled={loading}
-                  style={{ width: "2.75rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "1.5px solid rgba(99,102,241,0.25)", background: "rgba(99,102,241,0.07)", color: "#6366f1", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1, transition: "background 0.15s" }}
+                  style={{ width: "2.75rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "1.5px solid rgba(99,102,241,0.25)", background: "rgba(99,102,241,0.07)", color: "#6366f1", cursor: "pointer", transition: "background 0.15s" }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(99,102,241,0.15)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(99,102,241,0.07)"; }}
                 >
                   <Plus size={16} />
                 </button>
               </div>
-              {rolesError && (
-                <div id="user-roles-error" role="alert" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginTop: "0.5rem", color: "#dc2626", fontSize: "0.75rem" }}>
-                  <span>{rolesError}</span>
-                  <button type="button" onClick={retryRoles} style={{ border: "none", background: "transparent", color: "#4f46e5", font: "inherit", fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>
-                    Retry
-                  </button>
-                </div>
-              )}
               <p style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.375rem" }}>
-                Can’t find the role? Click <strong style={{ color: "#6366f1" }}>+</strong> to create a new one.
+                Can't find the role? Click <strong style={{ color: "#6366f1" }}>+</strong> to create a new one.
               </p>
             </div>
 
             {/* Department + Employee ID */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
-                <label htmlFor="user-department" style={labelStyle}>Department</label>
+                <label style={labelStyle}>Department</label>
                 <div style={inputWrap}>
                   <Building2 size={14} style={iconStyle} />
                   <input
-                    id="user-department"
-                    autoComplete="organization"
                     type="text" name="department" placeholder="e.g. Engineering"
                     value={form.department} onChange={handleChange}
                     style={inputBase} onFocus={focusIn} onBlur={focusOut}
@@ -316,11 +280,10 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
                 </div>
               </div>
               <div>
-                <label htmlFor="user-employee-id" style={labelStyle}>Employee ID</label>
+                <label style={labelStyle}>Employee ID</label>
                 <div style={inputWrap}>
                   <BadgeCheck size={14} style={iconStyle} />
                   <input
-                    id="user-employee-id"
                     type="text" name="employeeId" placeholder="e.g. EMP-001"
                     value={form.employeeId} onChange={handleChange}
                     style={inputBase} onFocus={focusIn} onBlur={focusOut}
@@ -330,9 +293,8 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
             </div>
 
             {/* Active toggle */}
-            <label htmlFor="user-active" style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1rem", background: "#f8faff", border: "1.5px solid #e2e8f0", borderRadius: "0.625rem", cursor: "pointer" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1rem", background: "#f8faff", border: "1.5px solid #e2e8f0", borderRadius: "0.625rem", cursor: "pointer" }}>
               <input
-                id="user-active"
                 type="checkbox" name="isActive"
                 checked={form.isActive} onChange={handleChange}
                 style={{ width: "1rem", height: "1rem", accentColor: "#6366f1", cursor: "pointer" }}
@@ -350,8 +312,8 @@ export default function UserModal({ open, onClose, user, refreshUsers }: Props) 
             {/* Actions */}
             <div style={{ display: "flex", gap: "0.75rem" }}>
               <button
-                type="button" onClick={requestClose} disabled={loading}
-                style={{ flex: 1, padding: "0.8125rem 1rem", fontSize: "0.9rem", fontWeight: 600, borderRadius: "0.625rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                type="button" onClick={onClose}
+                style={{ flex: 1, padding: "0.8125rem 1rem", fontSize: "0.9rem", fontWeight: 600, borderRadius: "0.625rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: "pointer" }}
               >
                 Cancel
               </button>

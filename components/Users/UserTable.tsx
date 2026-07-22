@@ -11,19 +11,17 @@ interface Props {
   loading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
-  emptyTitle?: string;
-  emptyDescription?: string;
 }
 
 const roleMeta: Record<string, { color: string; bg: string; border: string }> = {
-  admin:    { color: "var(--status-danger-text)", bg: "rgba(220,38,38,0.1)",   border: "rgba(220,38,38,0.22)"   },
-  hr:       { color: "var(--status-info-text)", bg: "rgba(37,99,235,0.1)",   border: "rgba(37,99,235,0.22)"   },
-  employee: { color: "var(--status-success-text)", bg: "rgba(5,150,105,0.1)",   border: "rgba(5,150,105,0.22)"   },
+  admin:    { color: "#dc2626", bg: "rgba(220,38,38,0.07)",   border: "rgba(220,38,38,0.15)"   },
+  hr:       { color: "#2563eb", bg: "rgba(37,99,235,0.07)",   border: "rgba(37,99,235,0.15)"   },
+  employee: { color: "#059669", bg: "rgba(5,150,105,0.07)",   border: "rgba(5,150,105,0.15)"   },
 };
 
 const defaultMeta = { color: "#6366f1", bg: "rgba(99,102,241,0.07)", border: "rgba(99,102,241,0.15)" };
 
-export default function UserTable({ users, loading, onEdit, onDelete, emptyTitle = "No users yet", emptyDescription = 'Click "Add User" to create the first one.' }: Props) {
+export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
   const pagination = usePagination(users);
   return (
     <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
@@ -47,11 +45,11 @@ export default function UserTable({ users, loading, onEdit, onDelete, emptyTitle
       ) : users.length === 0 ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "5rem 1rem", gap: "0.75rem" }}>
           <Users size={48} color="#e2e8f0" />
-          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>{emptyTitle}</p>
-          <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>{emptyDescription}</p>
+          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>No users yet</p>
+          <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>Click "Add User" to create the first one.</p>
         </div>
       ) : (
-        <div className="table-scroll-region" role="region" aria-label="Users table, scroll horizontally for more columns" tabIndex={0} style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "640px" }}>
             <thead>
               <tr style={{ background: "#f8faff", borderBottom: "1px solid #f0f2f8" }}>
@@ -121,7 +119,7 @@ export default function UserTable({ users, loading, onEdit, onDelete, emptyTitle
 
                     {/* Status badge */}
                     <td className="hidden sm:table-cell" style={{ padding: "0.875rem 1rem" }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: isActive ? "rgba(5,150,105,0.1)" : "rgba(239,68,68,0.1)", border: `1px solid ${isActive ? "rgba(5,150,105,0.22)" : "rgba(239,68,68,0.22)"}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: isActive ? "var(--status-success-text)" : "var(--status-danger-text)", whiteSpace: "nowrap" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: isActive ? "rgba(5,150,105,0.07)" : "rgba(239,68,68,0.07)", border: `1px solid ${isActive ? "rgba(5,150,105,0.15)" : "rgba(239,68,68,0.15)"}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: isActive ? "#059669" : "#ef4444", whiteSpace: "nowrap" }}>
                         {isActive ? "Active" : "Inactive"}
                       </span>
                     </td>

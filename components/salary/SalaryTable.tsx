@@ -12,28 +12,25 @@ interface Props {
   onEdit: (record: SalaryRecord) => void;
   onDelete: (record: SalaryRecord) => void;
   showEmployeeColumn?: boolean;
-  emptyTitle?: string;
-  emptyDescription?: string;
 }
 
 const statusMeta: Record<string, { color: string; bg: string; border: string }> = {
-  Paid:    { color: "var(--status-success-text)", bg: "rgba(5,150,105,0.1)", border: "rgba(5,150,105,0.22)" },
-  Pending: { color: "var(--status-warning-text)", bg: "rgba(217,119,6,0.1)", border: "rgba(217,119,6,0.22)" },
+  Paid:    { color: "#059669", bg: "rgba(5,150,105,0.07)", border: "rgba(5,150,105,0.15)" },
+  Pending: { color: "#d97706", bg: "rgba(217,119,6,0.07)", border: "rgba(217,119,6,0.15)" },
 };
-const defaultMeta = { color: "var(--color-primary-text)", bg: "var(--color-primary-soft)", border: "rgba(var(--color-primary-rgb),0.2)" };
+const defaultMeta = { color: "var(--color-primary)", bg: "var(--color-primary-soft)", border: "rgba(var(--color-primary-rgb),0.2)" };
 
 export function formatAmount(amount?: number) {
   return (amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export default function SalaryTable({ records, loading, onEdit, onDelete, showEmployeeColumn = true, emptyTitle = "No salary records yet", emptyDescription = 'Click "Add Salary" to log the first payment.' }: Props) {
+export default function SalaryTable({ records, loading, onEdit, onDelete, showEmployeeColumn = true }: Props) {
   const pagination = usePagination(records);
   const columns = [
     ...(showEmployeeColumn ? ["Employee"] : []),
     "Month", "Basic", "Allowances", "Deductions", "Bonus", "Net", "Status", "Paid On", "Actions",
   ];
   const rightAlign = ["Basic", "Allowances", "Deductions", "Bonus", "Net"];
-  const desktopOnly = ["Basic", "Allowances", "Deductions", "Bonus"];
 
   return (
     <div style={{ background: "var(--color-bg-surface)", borderRadius: "1rem", border: "1px solid var(--color-border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
@@ -57,18 +54,17 @@ export default function SalaryTable({ records, loading, onEdit, onDelete, showEm
       ) : records.length === 0 ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "5rem 1rem", gap: "0.75rem" }}>
           <Wallet size={40} color="var(--color-border-strong)" />
-          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--color-text-secondary)", margin: 0 }}>{emptyTitle}</p>
-          <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", margin: 0 }}>{emptyDescription}</p>
+          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--color-text-secondary)", margin: 0 }}>No salary records yet</p>
+          <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", margin: 0 }}>Click "Add Salary" to log the first payment.</p>
         </div>
       ) : (
-        <div className="table-scroll-region" role="region" aria-label="Salary table, scroll horizontally for more columns" tabIndex={0} style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8125rem", minWidth: showEmployeeColumn ? "580px" : "500px" }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8125rem", minWidth: showEmployeeColumn ? "760px" : "620px" }}>
             <thead>
               <tr style={{ background: "var(--color-bg-surface-alt)", borderBottom: "1px solid var(--color-border)" }}>
                 {columns.map((label) => (
                   <th
                     key={label}
-                    className={desktopOnly.includes(label) ? "hidden lg:table-cell" : label === "Paid On" ? "hidden xl:table-cell" : ""}
                     style={{ padding: "0.75rem 0.875rem", textAlign: label === "Actions" ? "center" : rightAlign.includes(label) ? "right" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}
                   >
                     {label}
@@ -92,17 +88,17 @@ export default function SalaryTable({ records, loading, onEdit, onDelete, showEm
                       </td>
                     )}
                     <td style={{ padding: "0.75rem 0.875rem", fontWeight: 600, color: "var(--color-text-primary)", whiteSpace: "nowrap" }}>{record.month}</td>
-                    <td className="hidden lg:table-cell" style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.basicSalary))}</td>
-                    <td className="hidden lg:table-cell" style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.allowances))}</td>
-                    <td className="hidden lg:table-cell" style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.deductions))}</td>
-                    <td className="hidden lg:table-cell" style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.bonus))}</td>
+                    <td style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.basicSalary))}</td>
+                    <td style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.allowances))}</td>
+                    <td style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.deductions))}</td>
+                    <td style={{ padding: "0.75rem 0.875rem", textAlign: "right", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{formatAmount(Number(record.bonus))}</td>
                     <td style={{ padding: "0.75rem 0.875rem", textAlign: "right", fontWeight: 700, color: "var(--color-text-primary)", whiteSpace: "nowrap" }}>{formatAmount(record.netSalary)}</td>
                     <td style={{ padding: "0.75rem 0.875rem" }}>
                       <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.625rem", background: meta.bg, border: `1px solid ${meta.border}`, borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, color: meta.color, whiteSpace: "nowrap" }}>
                         {record.status}
                       </span>
                     </td>
-                    <td className="hidden xl:table-cell" style={{ padding: "0.75rem 0.875rem", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
+                    <td style={{ padding: "0.75rem 0.875rem", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
                       {record.paymentDate || <span style={{ color: "var(--color-text-muted)" }}>—</span>}
                     </td>
                     <td style={{ padding: "0.75rem 0.875rem", textAlign: "center" }}>

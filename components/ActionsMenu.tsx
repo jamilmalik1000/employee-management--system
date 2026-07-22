@@ -35,36 +35,23 @@ export default function ActionsMenu({ items, details }: { items: ActionMenuItem[
 
   useEffect(() => {
     if (!open) return;
-    const close = (returnFocus = false) => {
-      setOpen(false);
-      if (returnFocus) window.requestAnimationFrame(() => buttonRef.current?.focus());
-    };
-    const closeWithoutFocus = () => close(menuRef.current?.contains(document.activeElement) ?? false);
-    const closeOnScroll = (event: Event) => {
-      const target = event.target;
-      if (target instanceof Node && menuRef.current?.contains(target)) return;
-      closeWithoutFocus();
-    };
+    const close = () => setOpen(false);
     const outside = (event: MouseEvent) => {
       const target = event.target as Node;
       if (!buttonRef.current?.contains(target) && !menuRef.current?.contains(target)) close();
     };
-    const frame = window.requestAnimationFrame(() => {
-      menuRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])')?.focus();
-    });
     document.addEventListener("mousedown", outside);
     document.addEventListener("keydown", closeOnEscape);
-    window.addEventListener("resize", closeWithoutFocus);
-    window.addEventListener("scroll", closeOnScroll, true);
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close, true);
     return () => {
       document.removeEventListener("mousedown", outside);
       document.removeEventListener("keydown", closeOnEscape);
-      window.removeEventListener("resize", closeWithoutFocus);
-      window.removeEventListener("scroll", closeOnScroll, true);
-      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", close, true);
     };
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") close(true);
+      if (event.key === "Escape") close();
     }
   }, [open]);
 
@@ -73,41 +60,20 @@ export default function ActionsMenu({ items, details }: { items: ActionMenuItem[
     : items;
 
   return <>
-    <button ref={buttonRef} type="button" onClick={toggle} title="Actions" aria-label={details ? `Actions for ${details.title}` : "Open actions"} aria-haspopup="menu" aria-expanded={open} data-open={open ? "true" : "false"} className={`actions-menu-trigger grid size-10 place-items-center rounded-lg border text-slate-600 shadow-sm transition ${open ? "border-indigo-300 bg-indigo-50 text-indigo-600" : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"}`}>
+    <button ref={buttonRef} onClick={toggle} title="Actions" aria-label="Open actions" aria-expanded={open} className={`grid size-8 place-items-center rounded-lg border text-slate-600 shadow-sm transition ${open ? "border-indigo-300 bg-indigo-50 text-indigo-600" : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"}`}>
       <MoreVertical size={15} />
     </button>
     {open && typeof document !== "undefined" && createPortal(
-      <div
-        ref={menuRef}
-        role="menu"
-        aria-label="Actions"
-        onKeyDown={(event) => {
-          const controls = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])') ?? []);
-          if (!controls.length) return;
-          const current = Math.max(0, controls.indexOf(document.activeElement as HTMLButtonElement));
-          let next = current;
-          if (event.key === "ArrowDown") next = (current + 1) % controls.length;
-          else if (event.key === "ArrowUp") next = (current - 1 + controls.length) % controls.length;
-          else if (event.key === "Home") next = 0;
-          else if (event.key === "End") next = controls.length - 1;
-          else if (event.key === "Tab") { setOpen(false); buttonRef.current?.focus(); return; }
-          else return;
-          event.preventDefault();
-          controls[next]?.focus();
-        }}
-        className="actions-menu-panel fixed z-[100] max-h-[min(320px,70dvh)] w-[200px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_14px_35px_rgba(15,23,42,0.18)]"
-        style={position}
-      >
+      <div ref={menuRef} role="menu" aria-label="Actions" className="fixed z-[100] max-h-[min(320px,70dvh)] w-[200px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_14px_35px_rgba(15,23,42,0.18)]" style={position}>
         {menuItems.map(({ label, icon: Icon, onClick, danger, disabled }, index) => (
           <Fragment key={`${label}-${index}`}>
-            {danger && index > 0 && <div role="separator" className="my-1 border-t border-slate-100" />}
+            {danger && index > 0 && <div className="my-1 border-t border-slate-100" />}
             <button
               type="button"
               role="menuitem"
-              tabIndex={-1}
               disabled={disabled}
-              onClick={() => { setOpen(false); buttonRef.current?.focus(); onClick(); }}
-              className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium leading-5 transition disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "actions-menu-danger text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"}`}
+              onClick={() => { setOpen(false); onClick(); }}
+              className={`flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium leading-5 transition disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"}`}
             >
               <Icon size={16} className={`shrink-0 ${danger ? "text-red-500" : "text-indigo-500"}`} />
               <span className="truncate">{label}</span>
@@ -116,6 +82,6 @@ export default function ActionsMenu({ items, details }: { items: ActionMenuItem[
         ))}
       </div>, document.body
     )}
-    {detailsOpen && details && <RecordDetailsModal title={details.title} data={details.data} onClose={() => { setDetailsOpen(false); buttonRef.current?.focus(); }} />}
+    {detailsOpen && details && <RecordDetailsModal title={details.title} data={details.data} onClose={() => setDetailsOpen(false)} />}
   </>;
 }

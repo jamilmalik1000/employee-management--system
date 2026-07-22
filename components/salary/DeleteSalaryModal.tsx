@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { SalaryRecord } from "@/types/salary";
 import { toast } from "sonner";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import type { SalaryRecord } from "@/types/salary";
 
 interface Props {
   open: boolean;
@@ -16,47 +16,100 @@ export default function DeleteSalaryModal({ open, onClose, salary, refreshSalary
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (open) setError("");
-  }, [open, salary?.id]);
-
-  if (!salary) return null;
+  if (!open || !salary) return null;
 
   const handleDelete = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/salary/delete", {
+      const res = await fetch("/api/salary/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: salary.id }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to delete salary record.");
-
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete salary record.");
       toast.success(`Salary record for ${salary.month} deleted.`);
       await refreshSalary();
       onClose();
-    } catch (caughtError: unknown) {
-      const message = caughtError instanceof Error ? caughtError.message : "Failed to delete salary record.";
-      setError(message);
-      toast.error(message);
-    } finally {
-      setLoading(false);
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message || "Failed to delete salary record.");
     }
+    setLoading(false);
   };
 
   return (
-    <ConfirmDialog
-      open={open}
-      title="Delete salary record?"
-      description={<>Delete the <strong>{salary.month}</strong> salary record for <strong>{salary.employeeName}</strong> ({salary.status}). This action cannot be undone.</>}
-      confirmLabel="Delete record"
-      busy={loading}
-      danger
-      error={error}
-      onClose={onClose}
-      onConfirm={handleDelete}
-    />
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 70, padding: "1.5rem" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="animate-slideUp w-full"
+        style={{ maxWidth: "480px", background: "#fff", borderRadius: "1.25rem", boxShadow: "0 32px 80px rgba(0,0,0,0.2)", overflow: "hidden" }}
+      >
+        {/* Top accent bar */}
+        <div style={{ height: "5px", background: "linear-gradient(90deg, #ef4444, #f97316)" }} />
+
+        {/* Body */}
+        <div style={{ padding: "2.5rem 2.5rem 2rem", textAlign: "center" }}>
+
+          {/* Icon */}
+          <div style={{ width: "5rem", height: "5rem", borderRadius: "50%", background: "rgba(239,68,68,0.08)", border: "2px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
+            <AlertTriangle size={36} color="#ef4444" />
+          </div>
+
+          <h2 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.75rem" }}>
+            Delete Salary Record
+          </h2>
+
+          <p style={{ fontSize: "0.9375rem", color: "#64748b", lineHeight: 1.6, margin: "0 0 0.5rem" }}>
+            You are about to permanently delete the salary record for
+          </p>
+
+          {/* Record pill */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "0.5rem 1.25rem", background: "rgba(99,102,241,0.08)", border: "1.5px solid rgba(99,102,241,0.2)", borderRadius: "9999px", margin: "0.5rem 0 0.375rem" }}>
+            <div style={{ textAlign: "left" }}>
+              <p style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#4f46e5", margin: 0 }}>{salary.employeeName}</p>
+              <p style={{ fontSize: "0.75rem", color: "#94a3b8", margin: 0 }}>{salary.month} · {salary.status}</p>
+            </div>
+          </div>
+
+          {/* Warning box */}
+          <div style={{ padding: "0.875rem 1rem", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: "0.75rem", marginTop: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: 600, margin: 0 }}>
+              ⚠️ This action cannot be undone.
+            </p>
+          </div>
+
+          {error && (
+            <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: "1px", background: "#f0f2f8", marginInline: "2.5rem" }} />
+
+        {/* Actions */}
+        <div style={{ display: "flex", gap: "0.875rem", padding: "1.75rem 2.5rem 2.5rem" }}>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            style={{ flex: 1, padding: "0.875rem 1rem", fontSize: "0.9375rem", fontWeight: 600, borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: "pointer" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            style={{ flex: 1, padding: "0.875rem 1rem", fontSize: "0.9375rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", background: loading ? "#fca5a5" : "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "0 4px 14px rgba(239,68,68,0.3)" }}
+          >
+            {loading ? <><Loader2 size={15} className="animate-spin" /> Deleting…</> : "Delete Record"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -7,9 +7,11 @@ import {
   User,
   Mail,
   Phone,
+  BadgeCheck,
   Briefcase,
   Building2,
   Users,
+  AlertCircle,
   Loader2,
   ToggleLeft,
   ChevronDown,
@@ -28,16 +30,12 @@ import {
   focusIn,
   focusOut,
 } from "@/lib/ui";
-import { useDialog } from "@/hooks/useDialog";
-import { useRemoteList } from "@/hooks/useRemoteList";
-import { getErrorMessage } from "@/lib/errors";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   employee: Employee;
   refreshEmployees: () => void;
-  canManageSalary?: boolean;
 }
 
 const initialErrors = {
@@ -52,31 +50,19 @@ export default function EmployeeModal({
   onClose,
   employee,
   refreshEmployees,
-  canManageSalary = false,
 }: Props) {
   const isEdit = !!employee.id;
   const hadLoginBefore = !!employee.userId;
+
   const [form, setForm] = useState<Employee>(employee);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
-  const requestClose = () => {
-    if (!loading) onClose();
-  };
-  const dialogRef = useDialog<HTMLDivElement>(open, requestClose);
 
   /* departments for dropdown */
-  const {
-    items: departments,
-    loading: deptLoading,
-    error: deptError,
-    retry: retryDepartments,
-  } = useRemoteList<{ id?: string; name: string }>({
-    open,
-    url: "/api/departments/list",
-    errorMessage: "Departments could not be loaded.",
-  });
+  const [departments, setDepartments] = useState<{ id?: string; name: string }[]>([]);
+  const [deptLoading, setDeptLoading] = useState(false);
 
   useEffect(() => {
     setForm(employee);
@@ -84,6 +70,17 @@ export default function EmployeeModal({
     setShowPassword(false);
     setErrors(initialErrors);
   }, [employee]);
+
+  /* fetch departments whenever the modal opens */
+  useEffect(() => {
+    if (!open) return;
+    setDeptLoading(true);
+    fetch("/api/departments/list")
+      .then((r) => r.json())
+      .then((data) => setDepartments(Array.isArray(data) ? data : []))
+      .catch(() => setDepartments([]))
+      .finally(() => setDeptLoading(false));
+  }, [open]);
 
   if (!open) return null;
 
@@ -126,11 +123,6 @@ export default function EmployeeModal({
 
     if (form.isLogin && !hadLoginBefore && !password.trim()) {
       temp.password = "Password is required to set up login access";
-      valid = false;
-    }
-
-    if (form.isLogin && password.trim() && password.trim().length < 6) {
-      temp.password = "Password must be at least 6 characters";
       valid = false;
     }
 
@@ -181,8 +173,8 @@ export default function EmployeeModal({
       refreshEmployees();
 
       onClose();
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error, "Failed to save employee."));
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save employee.");
     }
 
     setLoading(false);
@@ -202,14 +194,9 @@ export default function EmployeeModal({
         zIndex: 50,
         padding: "1.5rem",
       }}
-      onClick={(e) => e.target === e.currentTarget && requestClose()}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="employee-modal-title"
-        tabIndex={-1}
         className="animate-slideUp w-full"
         style={{
           maxWidth: "640px",
@@ -234,7 +221,6 @@ export default function EmployeeModal({
         >
           <div>
             <h2
-              id="employee-modal-title"
               style={{
                 fontSize: "1.2rem",
                 fontWeight: 800,
@@ -257,10 +243,7 @@ export default function EmployeeModal({
             </p>
           </div>
           <button
-            type="button"
-            aria-label="Close employee form"
-            onClick={requestClose}
-            disabled={loading}
+            onClick={onClose}
             style={{
               width: "2.25rem",
               height: "2.25rem",
@@ -270,10 +253,9 @@ export default function EmployeeModal({
               justifyContent: "center",
               borderRadius: "0.625rem",
               border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
+              cursor: "pointer",
               background: "rgba(255,255,255,0.12)",
               color: "#c4b5fd",
-              opacity: loading ? 0.55 : 1,
             }}
           >
             <X size={16} />
@@ -313,21 +295,17 @@ export default function EmployeeModal({
               }}
             >
               <div>
-                <label htmlFor="employee-name" style={labelStyle}>
+                <label style={labelStyle}>
                   Employee Name <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <div style={inputWrap}>
                   <User size={14} style={iconStyle} />
                   <input
-                    id="employee-name"
-                    autoComplete="name"
                     name="name"
                     value={form.name}
                     onChange={handleChange}
                     placeholder="John Doe"
                     required
-                    aria-invalid={!!errors.name}
-                    aria-describedby={errors.name ? "employee-name-error" : undefined}
                     style={inputBase}
                     onFocus={focusIn}
                     onBlur={focusOut}
@@ -335,8 +313,6 @@ export default function EmployeeModal({
                 </div>
                 {errors.name && (
                   <p
-                    id="employee-name-error"
-                    role="alert"
                     style={{
                       color: "#dc2626",
                       fontSize: "0.75rem",
@@ -349,22 +325,18 @@ export default function EmployeeModal({
               </div>
 
               <div>
-                <label htmlFor="employee-email" style={labelStyle}>
+                <label style={labelStyle}>
                   Email <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <div style={inputWrap}>
                   <Mail size={14} style={iconStyle} />
                   <input
-                    id="employee-email"
-                    autoComplete="email"
                     type="email"
                     name="email"
                     value={form.email}
                     onChange={handleChange}
                     placeholder="john@company.com"
                     required
-                    aria-invalid={!!errors.email}
-                    aria-describedby={errors.email ? "employee-email-error" : undefined}
                     style={inputBase}
                     onFocus={focusIn}
                     onBlur={focusOut}
@@ -372,8 +344,6 @@ export default function EmployeeModal({
                 </div>
                 {errors.email && (
                   <p
-                    id="employee-email-error"
-                    role="alert"
                     style={{
                       color: "#dc2626",
                       fontSize: "0.75rem",
@@ -386,21 +356,17 @@ export default function EmployeeModal({
               </div>
 
               <div>
-                <label htmlFor="employee-phone" style={labelStyle}>
+                <label style={labelStyle}>
                   Phone <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <div style={inputWrap}>
                   <Phone size={14} style={iconStyle} />
                   <input
-                    id="employee-phone"
-                    autoComplete="tel"
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
                     placeholder="+1 555 000 1234"
                     required
-                    aria-invalid={!!errors.phone}
-                    aria-describedby={errors.phone ? "employee-phone-error" : undefined}
                     style={inputBase}
                     onFocus={focusIn}
                     onBlur={focusOut}
@@ -408,8 +374,6 @@ export default function EmployeeModal({
                 </div>
                 {errors.phone && (
                   <p
-                    id="employee-phone-error"
-                    role="alert"
                     style={{
                       color: "#dc2626",
                       fontSize: "0.75rem",
@@ -422,11 +386,10 @@ export default function EmployeeModal({
               </div>
 
               <div>
-                <label htmlFor="employee-gender" style={labelStyle}>Gender</label>
+                <label style={labelStyle}>Gender</label>
                 <div style={inputWrap}>
                   <Users size={14} style={iconStyle} />
                   <select
-                    id="employee-gender"
                     name="gender"
                     value={form.gender}
                     onChange={handleChange}
@@ -487,29 +450,25 @@ export default function EmployeeModal({
               }}
             >
               <div>
-                <label htmlFor="employee-department" style={labelStyle}>Department</label>
+                <label style={labelStyle}>Department</label>
                 <div style={inputWrap}>
                   <Building2 size={14} style={iconStyle} />
                   <select
-                    id="employee-department"
                     name="department"
                     value={form.department}
                     onChange={handleChange}
-                    disabled={deptLoading}
-                    aria-describedby={deptError ? "employee-departments-error" : undefined}
                     style={{
                       ...inputBase,
                       paddingLeft: "2.5rem",
                       paddingRight: "2.5rem",
                       appearance: "none",
-                      cursor: deptLoading ? "not-allowed" : "pointer",
-                      opacity: deptLoading ? 0.7 : 1,
+                      cursor: "pointer",
                     }}
                     onFocus={focusIn}
                     onBlur={focusOut}
                   >
                     <option value="">
-                      {deptError ? "Departments unavailable" : deptLoading ? "Loading departments…" : "Select Department"}
+                      {deptLoading ? "Loading departments…" : "Select Department"}
                     </option>
                     {departments.map((dept) => (
                       <option key={dept.id} value={dept.name}>
@@ -529,22 +488,13 @@ export default function EmployeeModal({
                     }}
                   />
                 </div>
-                {deptError && (
-                  <div id="employee-departments-error" role="alert" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginTop: "0.5rem", color: "#dc2626", fontSize: "0.75rem" }}>
-                    <span>{deptError}</span>
-                    <button type="button" onClick={retryDepartments} style={{ border: "none", background: "transparent", color: "#4f46e5", font: "inherit", fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>
-                      Retry
-                    </button>
-                  </div>
-                )}
               </div>
 
               <div>
-                <label htmlFor="employee-designation" style={labelStyle}>Designation</label>
+                <label style={labelStyle}>Designation</label>
                 <div style={inputWrap}>
                   <Briefcase size={14} style={iconStyle} />
                   <input
-                    id="employee-designation"
                     name="designation"
                     value={form.designation}
                     onChange={handleChange}
@@ -557,11 +507,10 @@ export default function EmployeeModal({
               </div>
 
               <div>
-                <label htmlFor="employee-employment-type" style={labelStyle}>Employment Type</label>
+                <label style={labelStyle}>Employment Type</label>
                 <div style={inputWrap}>
                   <Briefcase size={14} style={iconStyle} />
                   <select
-                    id="employee-employment-type"
                     name="employmentType"
                     value={form.employmentType}
                     onChange={handleChange}
@@ -595,12 +544,11 @@ export default function EmployeeModal({
                 </div>
               </div>
 
-              {canManageSalary && <div>
-                <label htmlFor="employee-basic-salary" style={labelStyle}>Basic Salary</label>
+              <div>
+                <label style={labelStyle}>Basic Salary</label>
                 <div style={inputWrap}>
                   <DollarSign size={14} style={iconStyle} />
                   <input
-                    id="employee-basic-salary"
                     type="number"
                     name="basicSalary"
                     value={form.basicSalary}
@@ -613,7 +561,7 @@ export default function EmployeeModal({
                     onBlur={focusOut}
                   />
                 </div>
-              </div>}
+              </div>
             </div>
 
             {/* Toggles */}
@@ -626,7 +574,6 @@ export default function EmployeeModal({
               }}
             >
               <label
-                htmlFor="employee-has-login"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -639,7 +586,6 @@ export default function EmployeeModal({
                 }}
               >
                 <input
-                  id="employee-has-login"
                   type="checkbox"
                   name="isLogin"
                   checked={form.isLogin}
@@ -676,7 +622,6 @@ export default function EmployeeModal({
               </label>
 
               <label
-                htmlFor="employee-active"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -689,7 +634,6 @@ export default function EmployeeModal({
                 }}
               >
                 <input
-                  id="employee-active"
                   type="checkbox"
                   name="isActive"
                   checked={form.isActive}
@@ -729,7 +673,7 @@ export default function EmployeeModal({
             {/* Login credentials */}
             {form.isLogin && (
               <div style={{ marginTop: "0.875rem" }}>
-                <label htmlFor="employee-password" style={labelStyle}>
+                <label style={labelStyle}>
                   Password{" "}
                   {hadLoginBefore ? (
                     <span
@@ -749,23 +693,17 @@ export default function EmployeeModal({
                 <div style={inputWrap}>
                   <Lock size={14} style={iconStyle} />
                   <input
-                    id="employee-password"
-                    autoComplete="new-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={hadLoginBefore ? "••••••••" : "Min. 6 characters"}
                     required={!hadLoginBefore}
-                    minLength={6}
-                    aria-invalid={!!errors.password}
-                    aria-describedby={errors.password ? "employee-password-error employee-password-hint" : "employee-password-hint"}
                     style={{ ...inputBase, paddingRight: "2.5rem" }}
                     onFocus={focusIn}
                     onBlur={focusOut}
                   />
                   <button
                     type="button"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
                     onClick={() => setShowPassword((p) => !p)}
                     style={{
                       position: "absolute",
@@ -785,12 +723,12 @@ export default function EmployeeModal({
                   </button>
                 </div>
                 {errors.password && (
-                  <p id="employee-password-error" role="alert" style={{ color: "#dc2626", fontSize: "0.75rem", marginTop: "0.375rem" }}>
+                  <p style={{ color: "#dc2626", fontSize: "0.75rem", marginTop: "0.375rem" }}>
                     {errors.password}
                   </p>
                 )}
-                <p id="employee-password-hint" style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.375rem" }}>
-                  This creates a real login account using the employee’s email above, with the{" "}
+                <p style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.375rem" }}>
+                  This creates a real login account using the employee's email above, with the{" "}
                   <strong>Employee</strong> role.
                 </p>
               </div>
@@ -807,7 +745,7 @@ export default function EmployeeModal({
                 }}
               >
                 <p style={{ fontSize: "0.8125rem", color: "#dc2626", fontWeight: 600, margin: 0 }}>
-                  ⚠️ Saving will permanently remove this employee’s login account.
+                  ⚠️ Saving will permanently remove this employee's login account.
                 </p>
               </div>
             )}
@@ -817,8 +755,7 @@ export default function EmployeeModal({
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button
               type="button"
-              onClick={requestClose}
-              disabled={loading}
+              onClick={onClose}
               style={{
                 flex: 1,
                 padding: "0.8125rem 1rem",
@@ -828,8 +765,7 @@ export default function EmployeeModal({
                 border: "1.5px solid #e2e8f0",
                 background: "#f8faff",
                 color: "#475569",
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.6 : 1,
+                cursor: "pointer",
               }}
             >
               Cancel

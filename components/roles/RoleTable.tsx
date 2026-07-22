@@ -6,15 +6,12 @@ import { Role } from "./RoleModal";
 import Pagination from "@/components/Pagination";
 import { usePagination } from "@/hooks/usePagination";
 import ActionsMenu from "@/components/ActionsMenu";
-import { useDialog } from "@/hooks/useDialog";
 
 interface Props {
   roles: Role[];
   loading: boolean;
   onEdit: (role: Role) => void;
   onDelete: (role: Role) => void;
-  emptyTitle?: string;
-  emptyDescription?: string;
 }
 
 // Normalize: handles object {Dashboard:true,...} or array ["dashboard",...]
@@ -46,6 +43,7 @@ const PERM_META: Record<string, { icon: string; label: string; color: string; bg
   attendance:  { icon: "📋", label: "Attendance",     color: "#0891b2", bg: "rgba(8,145,178,0.07)",   border: "rgba(8,145,178,0.15)"   },
   leaves:      { icon: "📅", label: "Leave Requests", color: "#7c3aed", bg: "rgba(124,58,237,0.07)",  border: "rgba(124,58,237,0.15)"  },
   roles:       { icon: "🛡️", label: "Roles",          color: "#dc2626", bg: "rgba(220,38,38,0.07)",   border: "rgba(220,38,38,0.15)"   },
+  reports:     { icon: "📈", label: "Reports",        color: "#0d9488", bg: "rgba(13,148,136,0.07)",  border: "rgba(13,148,136,0.15)"  },
   settings:    { icon: "⚙️", label: "Settings",       color: "#64748b", bg: "rgba(100,116,139,0.07)", border: "rgba(100,116,139,0.15)" },
   profile:     { icon: "👤", label: "Profile",        color: "#9333ea", bg: "rgba(147,51,234,0.07)",  border: "rgba(147,51,234,0.15)"  },
 };
@@ -56,7 +54,6 @@ function permMeta(key: string) {
 
 // ── Permissions Detail Modal ──────────────────────────────────────────────────
 function PermissionsModal({ role, onClose }: { role: Role; onClose: () => void }) {
-  const dialogRef = useDialog<HTMLDivElement>(true, onClose);
   const enabled = resolvePerms(role);
 
   // Also collect disabled ones from the raw object for full picture
@@ -73,12 +70,7 @@ function PermissionsModal({ role, onClose }: { role: Role; onClose: () => void }
       onClick={onClose}
     >
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="permissions-modal-title"
-        tabIndex={-1}
-        style={{ background: "#fff", borderRadius: "1.25rem", width: "100%", maxWidth: "480px", maxHeight: "92dvh", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflowY: "auto", animation: "slideUp 0.2s ease" }}
+        style={{ background: "#fff", borderRadius: "1.25rem", width: "100%", maxWidth: "480px", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", animation: "slideUp 0.2s ease" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -89,12 +81,10 @@ function PermissionsModal({ role, onClose }: { role: Role; onClose: () => void }
             </div>
             <div>
               <p style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.7)", margin: 0, textTransform: "uppercase", letterSpacing: "0.06em" }}>Permissions</p>
-              <h2 id="permissions-modal-title" style={{ fontSize: "1rem", fontWeight: 700, color: "#fff", margin: 0, textTransform: "capitalize" }}>{role.name}</h2>
+              <p style={{ fontSize: "1rem", fontWeight: 700, color: "#fff", margin: 0, textTransform: "capitalize" }}>{role.name}</p>
             </div>
           </div>
           <button
-            type="button"
-            aria-label="Close permissions details"
             onClick={onClose}
             style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "rgba(255,255,255,0.15)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}
           >
@@ -162,7 +152,7 @@ function PermissionsModal({ role, onClose }: { role: Role; onClose: () => void }
 // ── RoleTable ─────────────────────────────────────────────────────────────────
 const MAX_VISIBLE = 3;
 
-export default function RoleTable({ roles, loading, onEdit, onDelete, emptyTitle = "No roles yet", emptyDescription = 'Click "Create Role" to define the first one.' }: Props) {
+export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
   const [viewRole, setViewRole] = useState<Role | null>(null);
   const pagination = usePagination(roles);
 
@@ -189,11 +179,11 @@ export default function RoleTable({ roles, loading, onEdit, onDelete, emptyTitle
         ) : roles.length === 0 ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "5rem 1rem", gap: "0.75rem" }}>
             <ShieldCheck size={48} color="#e2e8f0" />
-            <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>{emptyTitle}</p>
-            <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>{emptyDescription}</p>
+            <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>No roles yet</p>
+            <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>Click "Create Role" to define the first one.</p>
           </div>
         ) : (
-          <div className="table-scroll-region" role="region" aria-label="Roles table, scroll horizontally for more columns" tabIndex={0} style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "520px" }}>
               <thead>
                 <tr style={{ background: "#f8faff", borderBottom: "1px solid #f0f2f8" }}>

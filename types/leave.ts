@@ -11,7 +11,7 @@ export interface LeaveRequest {
   reason: string;
   status: LeaveStatus;
   reviewedBy?: string;
-  reviewedAt?: unknown;
-  createdAt?: unknown;
-  updatedAt?: unknown;
+  reviewedAt?: any;
+  createdAt?: any;
+  updatedAt?: any;
 }

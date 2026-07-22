@@ -9,8 +9,6 @@ import { toast } from "sonner";
 import { Department as DepartmentType } from "@/types/department";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut, labelStyle } from "@/lib/ui";
 import { textareaBase } from "@/lib/ui";
-import { useDialog } from "@/hooks/useDialog";
-import { getErrorMessage } from "@/lib/errors";
 
 interface Props {
   open: boolean;
@@ -21,13 +19,10 @@ interface Props {
 
 export default function DepartmentModal({ open, onClose, department, refreshDepartments }: Props) {
   const isEdit = !!department.id;
+
   const [form, setForm] = useState<DepartmentType>(department);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const requestClose = () => {
-    if (!loading) onClose();
-  };
-  const dialogRef = useDialog<HTMLDivElement>(open, requestClose);
 
   /* reset form whenever the modal opens (handles close → reopen with stale data) */
   useEffect(() => {
@@ -71,10 +66,9 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
       toast.success(isEdit ? "Department updated successfully!" : "Department created successfully!");
       refreshDepartments();
       onClose();
-    } catch (err: unknown) {
-      const message = getErrorMessage(err, "Failed to save department.");
-      setError(message);
-      toast.error(message);
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message || "Failed to save department.");
     }
     setLoading(false);
   };
@@ -83,21 +77,16 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
       style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-      onClick={(e) => e.target === e.currentTarget && requestClose()}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="department-modal-title"
-        tabIndex={-1}
         className="animate-slideUp w-full overflow-y-auto"
         style={{ maxWidth: "560px", maxHeight: "95vh", background: "#fff", borderRadius: "1.25rem", boxShadow: "0 32px 80px rgba(0,0,0,0.18)" }}
       >
         {/* Gradient header */}
         <div style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", borderRadius: "1.25rem 1.25rem 0 0", padding: "1.75rem 2rem 1.5rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
-            <h2 id="department-modal-title" style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", margin: 0 }}>
+            <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", margin: 0 }}>
               {isEdit ? "Edit Department" : "Add New Department"}
             </h2>
             <p style={{ fontSize: "0.8125rem", color: "#c4b5fd", marginTop: "0.375rem" }}>
@@ -105,22 +94,19 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
             </p>
           </div>
           <button
-            type="button"
-            aria-label="Close department form"
-            onClick={requestClose}
-            disabled={loading}
-            style={{ width: "2.25rem", height: "2.25rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "none", cursor: loading ? "not-allowed" : "pointer", background: "rgba(255,255,255,0.12)", color: "#c4b5fd", opacity: loading ? 0.55 : 1 }}
+            onClick={onClose}
+            style={{ width: "2.25rem", height: "2.25rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.12)", color: "#c4b5fd" }}
           >
             <X size={16} />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} aria-describedby={error ? "department-form-error" : undefined} style={{ padding: "1.75rem 2rem 2rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <form onSubmit={handleSubmit} style={{ padding: "1.75rem 2rem 2rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
           {/* Error */}
           {error && (
-            <div id="department-form-error" role="alert" style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.875rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.875rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: "0.125rem" }} />
               <span>{error}</span>
             </div>
@@ -128,16 +114,12 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
 
           {/* Name */}
           <div>
-            <label htmlFor="department-name" style={labelStyle}>Department Name <span style={{ color: "#ef4444" }}>*</span></label>
+            <label style={labelStyle}>Department Name <span style={{ color: "#ef4444" }}>*</span></label>
             <div style={inputWrap}>
               <Building2 size={14} style={iconStyle} />
               <input
-                id="department-name"
-                autoComplete="organization"
                 type="text" name="name" placeholder="e.g. Engineering"
                 value={form.name} onChange={handleChange} required
-                aria-invalid={!!error && !form.name.trim()}
-                aria-describedby={error && !form.name.trim() ? "department-form-error" : undefined}
                 style={inputBase} onFocus={focusIn} onBlur={focusOut}
               />
             </div>
@@ -145,11 +127,10 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
 
           {/* Description */}
           <div>
-            <label htmlFor="department-description" style={labelStyle}>Description</label>
+            <label style={labelStyle}>Description</label>
             <div style={{ position: "relative" }}>
               <FileText size={14} style={{ ...iconStyle, top: "1.05rem" }} />
               <textarea
-                id="department-description"
                 name="description" placeholder="Short description of the department…"
                 value={form.description} onChange={handleChange} rows={3}
                 style={textareaBase} onFocus={focusIn} onBlur={focusOut}
@@ -158,9 +139,8 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
           </div>
 
           {/* Active toggle */}
-          <label htmlFor="department-active" style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1rem", background: "#f8faff", border: "1.5px solid #e2e8f0", borderRadius: "0.625rem", cursor: "pointer" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1rem", background: "#f8faff", border: "1.5px solid #e2e8f0", borderRadius: "0.625rem", cursor: "pointer" }}>
             <input
-              id="department-active"
               type="checkbox" name="isActive"
               checked={form.isActive ?? true} onChange={handleChange}
               style={{ width: "1rem", height: "1rem", accentColor: "#6366f1", cursor: "pointer" }}
@@ -178,8 +158,8 @@ export default function DepartmentModal({ open, onClose, department, refreshDepa
           {/* Actions */}
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button
-              type="button" onClick={requestClose} disabled={loading}
-              style={{ flex: 1, padding: "0.8125rem 1rem", fontSize: "0.9rem", fontWeight: 600, borderRadius: "0.625rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+              type="button" onClick={onClose}
+              style={{ flex: 1, padding: "0.8125rem 1rem", fontSize: "0.9rem", fontWeight: 600, borderRadius: "0.625rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: "pointer" }}
             >
               Cancel
             </button>

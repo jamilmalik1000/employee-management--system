@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
-import { getErrorMessage } from "@/lib/errors";
 
 export async function POST(request: Request) {
   try {
@@ -49,9 +48,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, uid: userRecord.uid });
-  } catch (error: unknown) {
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, message: getErrorMessage(error, "Failed to create user.") },
+      { success: false, message: error.message },
       { status: 500 }
     );
   }
