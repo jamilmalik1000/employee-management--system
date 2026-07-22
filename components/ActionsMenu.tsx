@@ -23,7 +23,12 @@ export default function ActionsMenu({ items, details }: { items: ActionMenuItem[
   const toggle = () => {
     if (!open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setPosition({ top: rect.bottom + 6, left: Math.max(8, rect.right - 200) });
+      const itemCount = items.length + (details ? 1 : 0);
+      const estimatedHeight = itemCount * 37 + 12;
+      const top = rect.bottom + 6 + estimatedHeight > window.innerHeight
+        ? Math.max(8, rect.top - estimatedHeight - 6)
+        : rect.bottom + 6;
+      setPosition({ top, left: Math.min(window.innerWidth - 196, Math.max(8, rect.right - 188)) });
     }
     setOpen((value) => !value);
   };
@@ -54,12 +59,12 @@ export default function ActionsMenu({ items, details }: { items: ActionMenuItem[
       <MoreVertical size={15} />
     </button>
     {open && typeof document !== "undefined" && createPortal(
-      <div ref={menuRef} className="fixed z-[100] w-[200px] overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_14px_35px_rgba(15,23,42,0.18)]" style={position}>
+      <div ref={menuRef} className="fixed z-[100] max-h-[min(320px,70dvh)] w-[188px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-[0_14px_35px_rgba(15,23,42,0.18)]" style={position}>
         {menuItems.map(({ label, icon: Icon, onClick, danger, disabled }) => <button
           key={label} disabled={disabled}
           onClick={() => { setOpen(false); onClick(); }}
-          className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"}`}
-        ><span className={`grid size-6 place-items-center rounded-md ${danger ? "bg-red-50 text-red-500" : "bg-indigo-50 text-indigo-500"}`}><Icon size={13} /></span>{label}</button>)}
+          className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "mt-1 border-t border-slate-100 pt-2.5 text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"}`}
+        ><Icon size={14} className={`shrink-0 ${danger ? "text-red-500" : "text-indigo-500"}`} /><span className="truncate">{label}</span></button>)}
       </div>, document.body
     )}
     {detailsOpen && details && <RecordDetailsModal title={details.title} data={details.data} onClose={() => setDetailsOpen(false)} />}

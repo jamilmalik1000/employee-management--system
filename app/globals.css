@@ -357,8 +357,8 @@ body {
   :root:not([data-theme="dark"]) aside p[style*="color: #fff"] { color:#202536 !important; }
   :root:not([data-theme="dark"]) aside button { color:#697386 !important; }
 
-  /* Data grids use 80% of the page on desktop and expand on compact screens. */
-  .page-root > div:has(table) { width:80%; margin-left:auto !important; margin-right:auto !important; }
+  /* Data grids use the complete available page width. */
+  .page-root > div:has(table) { width:100%; margin-left:0 !important; margin-right:0 !important; }
   @media (max-width: 1024px) { .page-root > div:has(table) { width:100%; } }
 
   /* Bring legacy inline-styled screens and form modals onto the shared visual language. */
