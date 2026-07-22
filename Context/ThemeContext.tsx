@@ -8,37 +8,43 @@ import {
   ReactNode,
 } from "react";
 
-type Theme = "light" | "dark";
+export type Theme = "default" | "light" | "dark";
 
 const STORAGE_KEY = "ems-theme";
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("default");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (stored === "light" || stored === "dark") setThemeState(stored);
+    if (stored === "default" || stored === "light" || stored === "dark") setThemeState(stored);
   }, []);
 
-  const applyTheme = (next: Theme) => {
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyResolvedTheme = () => {
+      const resolved = theme === "default" ? (media.matches ? "dark" : "light") : theme;
+      document.documentElement.setAttribute("data-theme", resolved);
+    };
+    applyResolvedTheme();
+    media.addEventListener("change", applyResolvedTheme);
+    return () => media.removeEventListener("change", applyResolvedTheme);
+  }, [theme]);
+
+  const setTheme = (next: Theme) => {
     setThemeState(next);
     window.localStorage.setItem(STORAGE_KEY, next);
-    document.documentElement.setAttribute("data-theme", next);
   };
 
-  const setTheme = (next: Theme) => applyTheme(next);
-  const toggleTheme = () => applyTheme(theme === "light" ? "dark" : "light");
-
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

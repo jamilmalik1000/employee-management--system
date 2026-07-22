@@ -12,6 +12,8 @@ interface Props {
 }
 
 export default function Pagination({ page, pageCount, pageSize, total, onPageChange, onPageSizeChange }: Props) {
+  if (total < 5) return null;
+
   const first = total ? (page - 1) * pageSize + 1 : 0;
   const last = Math.min(page * pageSize, total);
   return (

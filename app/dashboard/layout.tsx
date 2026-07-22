@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Navbar onMenuClick={() => setSidebarOpen(true)} />
           <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-7xl p-4 sm:px-5 lg:px-6 lg:py-5">
+            <div className="mx-auto max-w-7xl p-5 sm:p-6 lg:px-8 lg:py-7">
               {children}
             </div>
           </main>

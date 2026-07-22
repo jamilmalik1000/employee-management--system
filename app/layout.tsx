@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 /* Sets data-theme on <html> before hydration so a saved "dark" preference
    doesn't flash light first. */
-const themeInitScript = `(function(){try{var t=localStorage.getItem('ems-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`;
+const themeInitScript = `(function(){try{var t=localStorage.getItem('ems-theme')||'default';var d=t==='dark'||(t==='default'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');}catch(e){}})();`;
 
 export default function RootLayout({
   children,

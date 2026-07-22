@@ -105,6 +105,114 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Keep legacy inline-styled modules readable in dark mode. */
+:root[data-theme="dark"] .page-root .card,
+:root[data-theme="dark"] .page-root div[style*="background: #fff"],
+:root[data-theme="dark"] .page-root div[style*="background: rgb(255, 255, 255"],
+:root[data-theme="dark"] .modal-overlay > div,
+:root[data-theme="dark"] div[role="dialog"] {
+  background-color: var(--color-bg-surface) !important;
+  border-color: var(--color-border) !important;
+}
+:root[data-theme="dark"] .page-root div[style*="background: #fafbff"],
+:root[data-theme="dark"] .page-root div[style*="background: #f8faff"],
+:root[data-theme="dark"] .page-root div[style*="background: #f1f5f9"],
+:root[data-theme="dark"] .page-root thead tr,
+:root[data-theme="dark"] .page-root input,
+:root[data-theme="dark"] .page-root select,
+:root[data-theme="dark"] .page-root textarea {
+  background-color: var(--color-bg-surface-alt) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+:root[data-theme="dark"] .page-root h1,
+:root[data-theme="dark"] .page-root h2,
+:root[data-theme="dark"] .page-root h3,
+:root[data-theme="dark"] .page-root td,
+:root[data-theme="dark"] .page-root label,
+:root[data-theme="dark"] .page-root p,
+:root[data-theme="dark"] .modal-overlay p,
+:root[data-theme="dark"] .modal-overlay label {
+  color: var(--color-text-secondary) !important;
+}
+:root[data-theme="dark"] .page-root h1,
+:root[data-theme="dark"] .page-root h2,
+:root[data-theme="dark"] .page-root h3,
+:root[data-theme="dark"] .page-root td[style*="font-weight: 7"],
+:root[data-theme="dark"] .page-root span[style*="font-weight: 7"] {
+  color: var(--color-text-primary) !important;
+}
+:root[data-theme="dark"] .page-root table th {
+  background-color: var(--color-bg-surface-alt) !important;
+  color: var(--color-text-muted) !important;
+}
+:root[data-theme="dark"] .page-root table tbody tr:hover { background: rgba(255,255,255,.035) !important; }
+:root[data-theme="dark"] .page-root table th,
+:root[data-theme="dark"] .page-root table td { border-color: var(--color-border) !important; }
+:root[data-theme="dark"] .bg-white { background-color: var(--color-bg-surface) !important; }
+:root[data-theme="dark"] .bg-slate-100,
+:root[data-theme="dark"] .bg-indigo-50 { background-color: var(--color-bg-surface-alt) !important; }
+:root[data-theme="dark"] .border-slate-100,
+:root[data-theme="dark"] .border-slate-200 { border-color: var(--color-border) !important; }
+:root[data-theme="dark"] .text-slate-500,
+:root[data-theme="dark"] .text-slate-600,
+:root[data-theme="dark"] .text-slate-700 { color: var(--color-text-secondary) !important; }
+:root[data-theme="dark"] .hover\:bg-indigo-50:hover { background-color: var(--color-primary-soft) !important; }
+
+/* Shared treatment for the legacy form modals used by each module. */
+:root[data-theme="dark"] .fixed.inset-0 > .animate-slideUp,
+:root[data-theme="dark"] .fixed.inset-0 > div > .animate-slideUp {
+  background: var(--color-bg-surface) !important;
+  border: 1px solid var(--color-border);
+}
+:root[data-theme="dark"] .fixed.inset-0 form label,
+:root[data-theme="dark"] .fixed.inset-0 form p { color: var(--color-text-secondary) !important; }
+:root[data-theme="dark"] .fixed.inset-0 form input,
+:root[data-theme="dark"] .fixed.inset-0 form select,
+:root[data-theme="dark"] .fixed.inset-0 form textarea {
+  background: var(--color-bg-surface-alt) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+:root[data-theme="dark"] .fixed.inset-0 form input::placeholder,
+:root[data-theme="dark"] .fixed.inset-0 form textarea::placeholder { color: var(--color-text-muted) !important; }
+
+@media (max-width: 640px) {
+  .fixed.inset-0 { padding: .75rem !important; }
+  .fixed.inset-0 > .animate-slideUp,
+  .fixed.inset-0 > div > .animate-slideUp { max-height: 92dvh !important; border-radius: 1rem !important; }
+  .fixed.inset-0 form { padding: 1.25rem !important; gap: 1rem !important; }
+  .fixed.inset-0 form div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+@media print {
+  @page { margin: 14mm; }
+  body * { visibility: hidden !important; }
+  .record-details-print,
+  .record-details-print * { visibility: visible !important; }
+  .record-details-print {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #111827 !important;
+  }
+  .record-details-header { background: #fff !important; border-bottom: 2px solid #111827 !important; padding-inline: 0 !important; }
+  .record-details-header p { color: #6b7280 !important; }
+  .record-details-header h2 { color: #111827 !important; }
+  .record-details-header button,
+  .record-details-actions { display: none !important; }
+  .record-details-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; overflow: visible !important; padding-inline: 0 !important; }
+  .record-details-grid dt { color: #6b7280 !important; }
+  .record-details-grid dd { color: #111827 !important; }
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
