@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0, overflow: "hidden" }}>
           <Navbar onMenuClick={() => setSidebarOpen(true)} />
           <main style={{ flex: 1, overflowY: "auto" }}>
-            <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "1.5rem 1rem" }} className="sm:px-6 lg:px-8 lg:py-8">
+            <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "1rem" }} className="sm:px-5 lg:px-6 lg:py-5">
               {children}
             </div>
           </main>
