@@ -4,6 +4,7 @@ import { Pencil, Trash2, Wallet } from "lucide-react";
 import { SalaryRecord } from "@/types/salary";
 import Pagination from "@/components/Pagination";
 import { usePagination } from "@/hooks/usePagination";
+import ActionsMenu from "@/components/ActionsMenu";
 
 interface Props {
   records: SalaryRecord[];
@@ -101,14 +102,7 @@ export default function SalaryTable({ records, loading, onEdit, onDelete, showEm
                       {record.paymentDate || <span style={{ color: "var(--color-text-muted)" }}>—</span>}
                     </td>
                     <td style={{ padding: "0.75rem 0.875rem", textAlign: "center" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.375rem" }}>
-                        <button onClick={() => onEdit(record)} title="Edit record" style={{ width: "1.875rem", height: "1.875rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(var(--color-primary-rgb),0.18)", background: "var(--color-primary-soft)", color: "var(--color-primary)", cursor: "pointer" }}>
-                          <Pencil size={12} />
-                        </button>
-                        <button onClick={() => onDelete(record)} title="Delete record" style={{ width: "1.875rem", height: "1.875rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(239,68,68,0.15)", background: "rgba(239,68,68,0.07)", color: "#ef4444", cursor: "pointer" }}>
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
+                      <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(record) }]} /></div>
                     </td>
                   </tr>
                 );

@@ -5,6 +5,7 @@ import { Pencil, Trash2, ShieldCheck, X } from "lucide-react";
 import { Role } from "./RoleModal";
 import Pagination from "@/components/Pagination";
 import { usePagination } from "@/hooks/usePagination";
+import ActionsMenu from "@/components/ActionsMenu";
 
 interface Props {
   roles: Role[];
@@ -266,28 +267,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
 
                       {/* Actions */}
                       <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                          <button
-                            onClick={() => !isAdmin && onEdit(role)}
-                            title={isAdmin ? "Admin role cannot be edited" : "Edit role"}
-                            disabled={isAdmin}
-                            style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.07)", color: isAdmin ? "#c7d2fe" : "#6366f1", cursor: isAdmin ? "not-allowed" : "pointer", opacity: isAdmin ? 0.45 : 1 }}
-                            onMouseEnter={(e) => { if (!isAdmin) e.currentTarget.style.background = "rgba(99,102,241,0.15)"; }}
-                            onMouseLeave={(e) => { if (!isAdmin) e.currentTarget.style.background = "rgba(99,102,241,0.07)"; }}
-                          >
-                            <Pencil size={13} />
-                          </button>
-                          <button
-                            onClick={() => !isAdmin && onDelete(role)}
-                            title={isAdmin ? "Admin role cannot be deleted" : "Delete role"}
-                            disabled={isAdmin}
-                            style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(239,68,68,0.15)", background: "rgba(239,68,68,0.07)", color: isAdmin ? "#fca5a5" : "#ef4444", cursor: isAdmin ? "not-allowed" : "pointer", opacity: isAdmin ? 0.45 : 1 }}
-                            onMouseEnter={(e) => { if (!isAdmin) e.currentTarget.style.background = "rgba(239,68,68,0.15)"; }}
-                            onMouseLeave={(e) => { if (!isAdmin) e.currentTarget.style.background = "rgba(239,68,68,0.07)"; }}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                        <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, disabled: isAdmin, onClick: () => onEdit(role) }, { label: "Delete", icon: Trash2, danger: true, disabled: isAdmin, onClick: () => onDelete(role) }]} /></div>
                       </td>
                     </tr>
                   );

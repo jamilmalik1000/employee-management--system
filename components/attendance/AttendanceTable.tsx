@@ -4,6 +4,7 @@ import { Pencil, Trash2, CalendarCheck } from "lucide-react";
 import { Attendance } from "@/types/attendance";
 import Pagination from "@/components/Pagination";
 import { usePagination } from "@/hooks/usePagination";
+import ActionsMenu from "@/components/ActionsMenu";
 
 interface Props {
   attendance: Attendance[];
@@ -127,14 +128,7 @@ export default function AttendanceTable({ attendance, loading, onEdit, onDelete,
                     {/* Actions */}
                     {!readOnly && (
                       <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.375rem" }}>
-                          <button onClick={() => onEdit?.(record)} title="Edit record" style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.07)", color: "#6366f1", cursor: "pointer" }} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.15)")} onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.07)")}>
-                            <Pencil size={13} />
-                          </button>
-                          <button onClick={() => onDelete?.(record)} title="Delete record" style={{ width: "2.125rem", height: "2.125rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.5rem", border: "1px solid rgba(239,68,68,0.15)", background: "rgba(239,68,68,0.07)", color: "#ef4444", cursor: "pointer" }} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.15)")} onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.07)")}>
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                        <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit?.(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete?.(record) }]} /></div>
                       </td>
                     )}
                   </tr>
