@@ -376,12 +376,63 @@ body {
   .page-root > div[style*="grid"] { gap:.75rem !important; }
   .page-root > div[style*="grid"] > .card { padding:.8rem 1rem !important; border-radius:.75rem !important; gap:.7rem !important; }
   .page-root > div[style*="grid"] > .card > div:first-child { width:2.25rem !important; height:2.25rem !important; border-radius:.6rem !important; font-size:1rem !important; }
+  .page-root > div[style*="grid"] > .card > div:first-child:not(:last-child) { display:none !important; }
+  .page-root > div[style*="grid"] > .card { justify-content:center; }
   .page-root > div[style*="grid"] > .card p:first-child { font-size:1.25rem !important; }
   .page-root > div[style*="grid"] > .card p:last-child { font-size:.7rem !important; }
   .page-root > .card:not(:has(table)) { padding:.75rem 1rem !important; border-radius:.75rem !important; }
   .page-root .form-input, .page-root input, .page-root select { min-height:2.35rem; padding-top:.5rem !important; padding-bottom:.5rem !important; font-size:.8rem !important; }
   .page-root table th { padding:.65rem .8rem !important; }
   .page-root table td { padding:.65rem .8rem !important; }
+  .page-root > div:has(table) { min-width:0; max-width:100%; overflow:hidden !important; }
+  .page-root > div:has(table) > div:has(> table) { width:100%; max-width:100%; overflow-x:auto !important; scrollbar-gutter:stable; }
+  .page-root table { width:100% !important; max-width:100%; font-size:.78rem !important; }
+  .page-root table th { white-space:nowrap; font-size:.64rem !important; letter-spacing:.045em !important; }
+  .page-root table td { min-width:0; }
+  .page-root table td p, .page-root table td span { max-width:100%; }
+  .pagination-bar { width:100%; min-width:0; padding:.65rem .8rem; }
+
+  @media (max-width: 640px) {
+    .page-root { gap:.75rem; }
+    .page-root > div:has(table) {
+      width:100% !important;
+      max-width:100% !important;
+      margin-inline:0 !important;
+      border-radius:.65rem !important;
+    }
+    .page-root > div:has(table) > div:has(> table) {
+      overflow-x:auto !important;
+      overscroll-behavior-inline:contain;
+      -webkit-overflow-scrolling:touch;
+    }
+    .page-root table {
+      width:max-content !important;
+      min-width:100% !important;
+      max-width:none !important;
+      font-size:.74rem !important;
+    }
+    .page-root table th, .page-root table td { padding:.55rem .65rem !important; }
+    .page-root table th:first-child, .page-root table td:first-child {
+      position:sticky;
+      left:0;
+      z-index:2;
+      background:var(--color-bg-surface);
+      box-shadow:5px 0 8px -8px rgba(15,23,42,.4);
+    }
+    .page-root table thead th:first-child { z-index:3; background:#f7f9fc; }
+    .page-root table th:last-child, .page-root table td:last-child {
+      position:sticky;
+      right:0;
+      z-index:2;
+      background:var(--color-bg-surface);
+      box-shadow:-5px 0 8px -8px rgba(15,23,42,.4);
+    }
+    .page-root table thead th:last-child { z-index:3; background:#f7f9fc; }
+    .pagination-bar { flex-direction:column; align-items:stretch; gap:.55rem; }
+    .pagination-summary { text-align:center; }
+    .pagination-actions { width:100%; justify-content:center; flex-wrap:wrap; }
+    .page-size-label { font-size:.7rem; }
+  }
 
   /* ── Avatar ── */
   .avatar {

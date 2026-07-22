@@ -10,16 +10,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ProtectedRoute>
-      <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--color-bg-app)" }}>
+      <div className="flex h-screen overflow-hidden bg-[var(--color-bg-app)]">
 
         {/* Sidebar — desktop always visible, mobile via drawer */}
         <Sidebar mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
 
         {/* Main column */}
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0, overflow: "hidden" }}>
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Navbar onMenuClick={() => setSidebarOpen(true)} />
-          <main style={{ flex: 1, overflowY: "auto" }}>
-            <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "1rem" }} className="sm:px-5 lg:px-6 lg:py-5">
+          <main className="flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-7xl p-4 sm:px-5 lg:px-6 lg:py-5">
               {children}
             </div>
           </main>
