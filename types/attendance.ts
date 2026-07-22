@@ -17,6 +17,8 @@ export interface Attendance {
 
   remarks?: string;
 
+  leaveRequestId?: string;
+
   createdAt?: any;
 
   updatedAt?: any;

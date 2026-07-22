@@ -29,6 +29,13 @@ export async function POST(req: NextRequest) {
 
     const record = existing.docs[0];
 
+    if (record.data().status === "Leave") {
+      return NextResponse.json(
+        { message: "You are marked as on leave today and cannot check out." },
+        { status: 400 }
+      );
+    }
+
     if (record.data().checkOut) {
       return NextResponse.json(
         { message: "You have already checked out today." },
