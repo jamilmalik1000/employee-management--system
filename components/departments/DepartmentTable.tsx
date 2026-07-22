@@ -96,7 +96,7 @@ export default function DepartmentTable({ departments, loading, onEdit, onDelete
 
                     {/* Actions */}
                     <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                      <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(dept) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(dept) }]} /></div>
+                      <div className="flex justify-center"><ActionsMenu details={{ title: dept.name || "Department", data: dept }} items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(dept) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(dept) }]} /></div>
                     </td>
                   </tr>
                 );

@@ -128,7 +128,7 @@ export default function AttendanceTable({ attendance, loading, onEdit, onDelete,
                     {/* Actions */}
                     {!readOnly && (
                       <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                        <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit?.(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete?.(record) }]} /></div>
+                        <div className="flex justify-center"><ActionsMenu details={{ title: `${record.employeeName} · ${record.date}`, data: record }} items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit?.(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete?.(record) }]} /></div>
                       </td>
                     )}
                   </tr>

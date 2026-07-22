@@ -126,7 +126,7 @@ export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
 
                     {/* Actions */}
                     <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                      <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(user) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(user) }]} /></div>
+                      <div className="flex justify-center"><ActionsMenu details={{ title: user.name || user.email || "User", data: user }} items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(user) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(user) }]} /></div>
                     </td>
                   </tr>
                 );

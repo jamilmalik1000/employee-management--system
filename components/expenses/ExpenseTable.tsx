@@ -121,7 +121,7 @@ export default function ExpenseTable({ expenses, loading, onEdit, onDelete }: Pr
 
                     {/* Actions */}
                     <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                      <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(expense) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(expense) }]} /></div>
+                      <div className="flex justify-center"><ActionsMenu details={{ title: expense.title || "Expense", data: expense }} items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(expense) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(expense) }]} /></div>
                     </td>
                   </tr>
                 );

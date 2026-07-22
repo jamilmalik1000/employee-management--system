@@ -267,7 +267,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
 
                       {/* Actions */}
                       <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                        <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, disabled: isAdmin, onClick: () => onEdit(role) }, { label: "Delete", icon: Trash2, danger: true, disabled: isAdmin, onClick: () => onDelete(role) }]} /></div>
+                        <div className="flex justify-center"><ActionsMenu details={{ title: role.name || "Role", data: role }} items={[{ label: "Edit", icon: Pencil, disabled: isAdmin, onClick: () => onEdit(role) }, { label: "Delete", icon: Trash2, danger: true, disabled: isAdmin, onClick: () => onDelete(role) }]} /></div>
                       </td>
                     </tr>
                   );

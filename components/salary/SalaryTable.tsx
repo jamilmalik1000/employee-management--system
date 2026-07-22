@@ -102,7 +102,7 @@ export default function SalaryTable({ records, loading, onEdit, onDelete, showEm
                       {record.paymentDate || <span style={{ color: "var(--color-text-muted)" }}>—</span>}
                     </td>
                     <td style={{ padding: "0.75rem 0.875rem", textAlign: "center" }}>
-                      <div className="flex justify-center"><ActionsMenu items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(record) }]} /></div>
+                      <div className="flex justify-center"><ActionsMenu details={{ title: `${record.employeeName || "Salary"} · ${record.month}`, data: record }} items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete(record) }]} /></div>
                     </td>
                   </tr>
                 );

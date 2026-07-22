@@ -155,7 +155,7 @@ body {
   .animate-spin       { animation: spin 0.8s linear infinite; }
 
   /* Page shell */
-  .page-root { display: flex; flex-direction: column; gap: 1rem; }
+  .page-root { display: flex; flex-direction: column; gap: 1rem; padding-top:.75rem; }
 
   /* Dashboard two-column row — collapses to one column on narrow screens */
   .dashboard-grid { grid-template-columns: 1fr 340px; }
@@ -358,7 +358,7 @@ body {
   :root:not([data-theme="dark"]) aside button { color:#697386 !important; }
 
   /* Data grids use 80% of the page on desktop and expand on compact screens. */
-  .page-root > div:has(table) { width:80%; margin-inline:auto; }
+  .page-root > div:has(table) { width:80%; margin-left:auto !important; margin-right:auto !important; }
   @media (max-width: 1024px) { .page-root > div:has(table) { width:100%; } }
 
   /* Bring legacy inline-styled screens and form modals onto the shared visual language. */
