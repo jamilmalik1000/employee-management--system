@@ -2,6 +2,8 @@
 
 import { Pencil, Trash2, Building2 } from "lucide-react";
 import { Department } from "@/types/department";
+import Pagination from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Props {
   departments: Department[];
@@ -11,6 +13,7 @@ interface Props {
 }
 
 export default function DepartmentTable({ departments, loading, onEdit, onDelete }: Props) {
+  const pagination = usePagination(departments);
   return (
     <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
 
@@ -58,7 +61,7 @@ export default function DepartmentTable({ departments, loading, onEdit, onDelete
               </tr>
             </thead>
             <tbody>
-              {departments.map((dept, i) => {
+              {pagination.pageItems.map((dept, i) => {
                 const isActive = dept.isActive ?? false;
 
                 return (
@@ -108,6 +111,7 @@ export default function DepartmentTable({ departments, loading, onEdit, onDelete
           </table>
         </div>
       )}
+      {!loading && departments.length > 0 && <Pagination {...pagination} total={departments.length} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
     </div>
   );
 }

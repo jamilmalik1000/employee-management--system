@@ -11,7 +11,7 @@
    Deep Orange #EA6113 · Orange #F88F22 · Gold #FBB931 · Cream #FFE3B3
    (Sidebar/avatar identity mark stays fixed purple/magenta — see --gradient-identity below) */
 :root {
-  --color-bg-app:         #F7F7F8;
+  --color-bg-app:         #F7F8FF;
   --color-bg-surface:     #FFFFFF;
   --color-bg-surface-alt: #F2F2F3;
   --color-border:         #E4E4E6;
@@ -21,15 +21,15 @@
   --color-text-secondary: #63636A;
   --color-text-muted:     #98989E;
 
-  --color-primary:        #EA6113;
-  --color-primary-hover:  #C9500C;
-  --color-primary-soft:   rgba(234,97,19,0.08);
-  --color-primary-rgb:    234,97,19;
+  --color-primary:        #5B5CF6;
+  --color-primary-hover:  #494BE8;
+  --color-primary-soft:   rgba(91,92,246,0.08);
+  --color-primary-rgb:    91,92,246;
 
-  --color-accent:         #F88F22;
-  --color-accent-hover:   #D97810;
-  --color-accent-soft:    rgba(248,143,34,0.10);
-  --color-accent-rgb:     248,143,34;
+  --color-accent:         #E53591;
+  --color-accent-hover:   #C9297D;
+  --color-accent-soft:    rgba(229,53,145,0.10);
+  --color-accent-rgb:     229,53,145;
 
   --color-gold:           #FBB931;
   --color-gold-soft:      #FFE3B3;
@@ -40,7 +40,7 @@
   --color-warning: #f59e0b;
   --color-info:    #3b82f6;
 
-  --gradient-brand:    linear-gradient(135deg, #EA6113 0%, #F88F22 100%);
+  --gradient-brand:    linear-gradient(135deg, #5B5CF6 0%, #E53591 100%);
   --gradient-identity: linear-gradient(135deg, #2C0E63 0%, #DA0090 100%);
   --color-identity-rgb: 218,0,144;
   --gradient-sidebar:  linear-gradient(180deg, #1A0B2E 0%, #2C0E63 55%, #12002E 100%);
@@ -167,8 +167,8 @@ body {
   .card {
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border);
-    border-radius: 1rem;
-    box-shadow: var(--shadow-sm);
+    border-radius: 0.875rem;
+    box-shadow: 0 8px 28px rgba(67, 70, 160, 0.10);
     transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   }
   .card:hover {
@@ -212,7 +212,7 @@ body {
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
     font-family: var(--font-sans);
-    background: var(--color-bg-surface-alt);
+    background: #f1f5f9;
     border: 1.5px solid var(--color-border);
     border-radius: 0.625rem;
     color: var(--color-text-primary);
@@ -320,6 +320,29 @@ body {
     z-index: 50;
     padding: 1rem;
   }
+
+  .pagination-bar { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.9rem 1rem; border-top:1px solid var(--color-border); background:#fff; }
+  .pagination-summary { color:#64748b; font-size:0.78rem; font-weight:600; }
+  .pagination-actions { display:flex; align-items:center; gap:0.5rem; }
+  .page-size-label { display:flex; align-items:center; gap:0.5rem; color:#64748b; font-size:0.75rem; font-weight:600; }
+  .page-size-select { height:2.25rem; padding:0 1.8rem 0 0.65rem; border:1px solid #dbe3ef; border-radius:0.5rem; background:#f1f5f9; color:#334155; font-weight:700; }
+  .page-button { width:2.25rem; height:2.25rem; display:grid; place-items:center; border:1px solid #dbe3ef; border-radius:0.5rem; background:#f1f5f9; color:#536987; cursor:pointer; }
+  .page-button:not(:disabled):hover { color:#5B5CF6; border-color:#5B5CF6; background:#fff; }
+  .page-button:disabled { opacity:.4; cursor:not-allowed; }
+  .page-indicator { min-width:3rem; text-align:center; color:#334155; font-size:.78rem; font-weight:700; }
+  @media (max-width: 540px) { .pagination-bar { align-items:flex-start; flex-direction:column; } .pagination-actions { width:100%; justify-content:space-between; } .page-size-label { font-size:0; } .page-size-label select { font-size:.75rem; } }
+
+  table thead tr { background:#f7f9fc !important; }
+  table th { color:#536987 !important; }
+  table tbody tr:hover { background:#fafbff !important; }
+
+  /* Bring legacy inline-styled screens and form modals onto the shared visual language. */
+  button[style*="linear-gradient(135deg, #6366f1, #4f46e5)"],
+  button[style*="linear-gradient(135deg, #4f46e5, #7c3aed)"] { background:var(--gradient-brand) !important; box-shadow:0 5px 14px rgba(91,92,246,.24) !important; }
+  div[style*="linear-gradient(135deg, #4f46e5, #7c3aed)"],
+  div[style*="linear-gradient(135deg, #6366f1, #4f46e5)"] { background:var(--gradient-brand) !important; }
+  form input, form select, form textarea { border-color:#dbe3ef !important; border-radius:.625rem !important; }
+  .page-root > div:first-child h1 { color:#172033 !important; letter-spacing:-.02em; }
 
   /* ── Avatar ── */
   .avatar {

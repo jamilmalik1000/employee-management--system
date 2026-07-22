@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Pencil, Trash2, ShieldCheck, X } from "lucide-react";
 import { Role } from "./RoleModal";
+import Pagination from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Props {
   roles: Role[];
@@ -151,6 +153,7 @@ const MAX_VISIBLE = 3;
 
 export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
   const [viewRole, setViewRole] = useState<Role | null>(null);
+  const pagination = usePagination(roles);
 
   return (
     <>
@@ -200,7 +203,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {roles.map((role, i) => {
+                {pagination.pageItems.map((role, i) => {
                   const enabled = resolvePerms(role);
                   const isAdmin = role.name?.toLowerCase() === "admin";
 
@@ -293,6 +296,7 @@ export default function RoleTable({ roles, loading, onEdit, onDelete }: Props) {
             </table>
           </div>
         )}
+        {!loading && roles.length > 0 && <Pagination {...pagination} total={roles.length} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
       </div>
 
       {/* Permissions detail modal */}

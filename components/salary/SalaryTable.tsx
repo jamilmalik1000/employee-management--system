@@ -2,6 +2,8 @@
 
 import { Pencil, Trash2, Wallet } from "lucide-react";
 import { SalaryRecord } from "@/types/salary";
+import Pagination from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Props {
   records: SalaryRecord[];
@@ -22,6 +24,7 @@ export function formatAmount(amount?: number) {
 }
 
 export default function SalaryTable({ records, loading, onEdit, onDelete, showEmployeeColumn = true }: Props) {
+  const pagination = usePagination(records);
   const columns = [
     ...(showEmployeeColumn ? ["Employee"] : []),
     "Month", "Basic", "Allowances", "Deductions", "Bonus", "Net", "Status", "Paid On", "Actions",
@@ -69,7 +72,7 @@ export default function SalaryTable({ records, loading, onEdit, onDelete, showEm
               </tr>
             </thead>
             <tbody>
-              {records.map((record, i) => {
+              {pagination.pageItems.map((record, i) => {
                 const meta = statusMeta[record.status] ?? defaultMeta;
                 return (
                   <tr key={record.id} style={{ borderBottom: i < records.length - 1 ? "1px solid var(--color-border)" : "none" }}>
@@ -114,6 +117,7 @@ export default function SalaryTable({ records, loading, onEdit, onDelete, showEm
           </table>
         </div>
       )}
+      {!loading && records.length > 0 && <Pagination {...pagination} total={records.length} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
     </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import { Pencil, Trash2, Receipt } from "lucide-react";
 import { Expense } from "@/types/expense";
+import Pagination from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Props {
   expenses: Expense[];
@@ -24,6 +26,7 @@ function formatAmount(amount: number | "") {
 }
 
 export default function ExpenseTable({ expenses, loading, onEdit, onDelete }: Props) {
+  const pagination = usePagination(expenses);
   return (
     <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
 
@@ -73,7 +76,7 @@ export default function ExpenseTable({ expenses, loading, onEdit, onDelete }: Pr
               </tr>
             </thead>
             <tbody>
-              {expenses.map((expense, i) => {
+              {pagination.pageItems.map((expense, i) => {
                 const meta = statusMeta[expense.status] ?? defaultMeta;
 
                 return (
@@ -133,6 +136,7 @@ export default function ExpenseTable({ expenses, loading, onEdit, onDelete }: Pr
           </table>
         </div>
       )}
+      {!loading && expenses.length > 0 && <Pagination {...pagination} total={expenses.length} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
     </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import { Pencil, Trash2, CalendarCheck } from "lucide-react";
 import { Attendance } from "@/types/attendance";
+import Pagination from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Props {
   attendance: Attendance[];
@@ -22,6 +24,7 @@ const statusMeta: Record<string, { color: string; bg: string; border: string }> 
 const defaultMeta = { color: "#6366f1", bg: "rgba(99,102,241,0.07)", border: "rgba(99,102,241,0.15)" };
 
 export default function AttendanceTable({ attendance, loading, onEdit, onDelete, readOnly }: Props) {
+  const pagination = usePagination(attendance);
   return (
     <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
 
@@ -74,7 +77,7 @@ export default function AttendanceTable({ attendance, loading, onEdit, onDelete,
               </tr>
             </thead>
             <tbody>
-              {attendance.map((record, i) => {
+              {pagination.pageItems.map((record, i) => {
                 const meta = statusMeta[record.status] ?? defaultMeta;
 
                 return (
@@ -141,6 +144,7 @@ export default function AttendanceTable({ attendance, loading, onEdit, onDelete,
           </table>
         </div>
       )}
+      {!loading && attendance.length > 0 && <Pagination {...pagination} total={attendance.length} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
     </div>
   );
 }

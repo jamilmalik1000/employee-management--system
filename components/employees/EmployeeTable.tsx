@@ -3,6 +3,8 @@
 import { Users } from "lucide-react";
 import { Employee } from "@/types/employee";
 import EmployeeActionsMenu from "@/components/employees/EmployeeActionsMenu";
+import Pagination from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Props {
   employees: Employee[];
@@ -53,6 +55,7 @@ export default function EmployeeTable({
   onAddSalary,
   onViewSalaryHistory,
 }: Props) {
+  const pagination = usePagination(employees);
   return (
     <div
       style={{
@@ -213,7 +216,7 @@ export default function EmployeeTable({
               </tr>
             </thead>
             <tbody>
-              {employees.map((employee, i) => {
+              {pagination.pageItems.map((employee, i) => {
                 const isActive = employee.isActive ?? true;
                 const type = (employee.employmentType || "").trim();
                 const meta = typeMeta[type] ?? defaultMeta;
@@ -458,6 +461,7 @@ export default function EmployeeTable({
           </table>
         </div>
       )}
+      {!loading && employees.length > 0 && <Pagination {...pagination} total={employees.length} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
     </div>
   );
 }

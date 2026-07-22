@@ -2,6 +2,8 @@
 
 import { Pencil, Trash2, Users } from "lucide-react";
 import { User } from "@/app/dashboard/users/page";
+import Pagination from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
 
 interface Props {
   users: User[];
@@ -19,6 +21,7 @@ const roleMeta: Record<string, { color: string; bg: string; border: string }> = 
 const defaultMeta = { color: "#6366f1", bg: "rgba(99,102,241,0.07)", border: "rgba(99,102,241,0.15)" };
 
 export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
+  const pagination = usePagination(users);
   return (
     <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
 
@@ -69,7 +72,7 @@ export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
               </tr>
             </thead>
             <tbody>
-              {users.map((user, i) => {
+              {pagination.pageItems.map((user, i) => {
                 const role = (user.role || "employee").toLowerCase();
                 const meta = roleMeta[role] ?? defaultMeta;
                 const isActive = user.isActive ?? false;
@@ -138,6 +141,7 @@ export default function UserTable({ users, loading, onEdit, onDelete }: Props) {
           </table>
         </div>
       )}
+      {!loading && users.length > 0 && <Pagination {...pagination} total={users.length} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />}
     </div>
   );
 }
