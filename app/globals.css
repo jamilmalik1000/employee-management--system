@@ -336,6 +336,27 @@ body {
   table th { color:#536987 !important; }
   table tbody tr:hover { background:#fafbff !important; }
 
+  /* Light theme sidebar; dark mode keeps the original deep-purple treatment. */
+  :root:not([data-theme="dark"]) aside {
+    background:linear-gradient(180deg, #ffffff 0%, #f8f7ff 100%) !important;
+    border-right:1px solid #e5e7ef !important;
+    box-shadow:4px 0 18px rgba(67,70,160,.06);
+  }
+  :root:not([data-theme="dark"]) aside > div { border-color:#ececf4 !important; }
+  :root:not([data-theme="dark"]) aside nav p { color:#9898aa !important; }
+  :root:not([data-theme="dark"]) aside nav a { color:#667085 !important; }
+  :root:not([data-theme="dark"]) aside nav a[style*="linear-gradient"] {
+    color:#5b5cf6 !important;
+    background:linear-gradient(135deg, rgba(91,92,246,.12), rgba(229,53,145,.08)) !important;
+    border-color:rgba(91,92,246,.18) !important;
+  }
+  :root:not([data-theme="dark"]) aside nav button { color:#667085 !important; }
+  :root:not([data-theme="dark"]) aside nav button svg { color:#7c72c9 !important; }
+  :root:not([data-theme="dark"]) aside div[style*="background: rgba(255, 255, 255"] { background:#f5f4fa !important; border-color:#e8e6ef !important; }
+  :root:not([data-theme="dark"]) aside p[style*="color: rgb(255, 255, 255)"],
+  :root:not([data-theme="dark"]) aside p[style*="color: #fff"] { color:#202536 !important; }
+  :root:not([data-theme="dark"]) aside button { color:#697386 !important; }
+
   /* Data grids use 80% of the page on desktop and expand on compact screens. */
   .page-root > div:has(table) { width:80%; margin-inline:auto; }
   @media (max-width: 1024px) { .page-root > div:has(table) { width:100%; } }
