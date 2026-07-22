@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { X, ShieldCheck, Loader2 } from "lucide-react";
 import { AVAILABLE_PERMISSIONS } from "@/lib/permission";
 import { toast } from "sonner";
+import { useDialog } from "@/hooks/useDialog";
+import { getErrorMessage } from "@/lib/errors";
 
 export interface Role {
   id: string;
@@ -25,17 +27,20 @@ interface Props {
 const PERMISSION_GROUPS = [
   { group: "Core",       keys: ["dashboard", "profile"] },
   { group: "HR & People",keys: ["employees", "departments", "attendance", "leaves"] },
-  { group: "System",     keys: ["users", "roles", "salary", "expenses", "settings", "reports"] },
+  { group: "System",     keys: ["users", "roles", "salary", "expenses", "settings"] },
 ];
 
 export default function RoleModal({ open, onClose, role: editRole, refreshRoles }: Props) {
   const isEdit = !!editRole;
-
   const [name, setName]               = useState("");
   const [description, setDescription] = useState("");
   const [permissions, setPermissions] = useState<string[]>([]);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
+  const requestClose = () => {
+    if (!loading) onClose();
+  };
+  const dialogRef = useDialog<HTMLDivElement>(open, requestClose);
 
   // Normalize permissions from API (object or array, any casing) → string[]
   function normalizePerms(role: Role): string[] {
@@ -116,9 +121,10 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
       toast.success(isEdit ? `"${name}" role updated successfully!` : `"${name}" role created successfully!`);
       refreshRoles();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message || "Failed to save role.");
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, "Failed to save role.");
+      setError(message);
+      toast.error(message);
     }
 
     setLoading(false);
@@ -129,10 +135,15 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => e.target === e.currentTarget && requestClose()}
     >
       {/* Modal */}
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="role-modal-title"
+        tabIndex={-1}
         className="animate-slideUp w-full overflow-y-auto"
         style={{
           maxWidth: "580px",
@@ -159,7 +170,7 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
               <ShieldCheck size={20} color="#fff" />
             </div>
             <div>
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 800, color: "#fff", margin: 0 }}>
+              <h2 id="role-modal-title" style={{ fontSize: "1.125rem", fontWeight: 800, color: "#fff", margin: 0 }}>
                 {isEdit ? "Edit Role" : "Create New Role"}
               </h2>
               <p style={{ fontSize: "0.8rem", color: "#c4b5fd", margin: "0.25rem 0 0" }}>
@@ -168,34 +179,40 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
             </div>
           </div>
           <button
-            onClick={onClose}
-            style={{ width: "2.25rem", height: "2.25rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.12)", color: "#c4b5fd" }}
+            type="button"
+            aria-label="Close role form"
+            onClick={requestClose}
+            disabled={loading}
+            style={{ width: "2.25rem", height: "2.25rem", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.625rem", border: "none", cursor: loading ? "not-allowed" : "pointer", background: "rgba(255,255,255,0.12)", color: "#c4b5fd", opacity: loading ? 0.55 : 1 }}
           >
             <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} style={{ padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <form onSubmit={handleSubmit} aria-describedby={error ? "role-form-error" : undefined} style={{ padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
           {/* Error */}
           {error && (
-            <div style={{ padding: "0.875rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
+            <div id="role-form-error" role="alert" style={{ padding: "0.875rem 1rem", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "0.75rem", color: "#dc2626", fontSize: "0.875rem" }}>
               ⚠️ {error}
             </div>
           )}
 
           {/* Name */}
           <div>
-            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}>
+            <label htmlFor="role-name" style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}>
               Role Name <span style={{ color: "#ef4444" }}>*</span>
             </label>
             <input
+              id="role-name"
               type="text"
               placeholder="e.g. Manager, Accountant…"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              aria-invalid={!!error && !name.trim()}
+              aria-describedby={error && !name.trim() ? "role-form-error" : undefined}
               style={{ width: "100%", padding: "0.75rem 1rem", fontSize: "0.9375rem", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", outline: "none", fontFamily: "inherit", color: "#0f172a", background: "#f8faff", boxSizing: "border-box" }}
               onFocus={(e) => { e.target.style.borderColor = "#6366f1"; e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12)"; }}
               onBlur={(e)  => { e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none"; }}
@@ -204,10 +221,11 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
 
           {/* Description */}
           <div>
-            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}>
+            <label htmlFor="role-description" style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}>
               Description
             </label>
             <input
+              id="role-description"
               type="text"
               placeholder="Short description of this role…"
               value={description}
@@ -219,18 +237,20 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
           </div>
 
           {/* Permissions */}
-          <div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.875rem" }}>
-              <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Permissions <span style={{ color: "#ef4444" }}>*</span>
-              </label>
-              <span style={{ fontSize: "0.75rem", color: "#6366f1", fontWeight: 600 }}>
-                {permissions.length} / {AVAILABLE_PERMISSIONS.length} selected
+          <fieldset style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+            <legend style={{ width: "100%", padding: 0, marginBottom: "0.875rem" }}>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Permissions <span style={{ color: "#ef4444" }}>*</span>
+                </span>
+                <span style={{ fontSize: "0.75rem", color: "#6366f1", fontWeight: 600 }}>
+                  {permissions.length} / {AVAILABLE_PERMISSIONS.length} selected
+                </span>
               </span>
-            </div>
+            </legend>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {PERMISSION_GROUPS.map((group) => {
+              {PERMISSION_GROUPS.map((group, groupIndex) => {
                 const groupPerms = AVAILABLE_PERMISSIONS.filter((p) => group.keys.includes(p.key));
                 const allChecked = group.keys.every((k) => permissions.includes(k));
                 const someChecked = group.keys.some((k) => permissions.includes(k));
@@ -243,6 +263,10 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
                       onClick={() => toggleGroup(group.keys)}
                     >
                       <input
+                        id={`role-permission-group-${groupIndex}`}
+                        name="permissionGroups"
+                        value={group.group}
+                        aria-labelledby={`role-permission-group-${groupIndex}-label`}
                         type="checkbox"
                         checked={allChecked}
                         ref={(el) => { if (el) el.indeterminate = someChecked && !allChecked; }}
@@ -250,7 +274,7 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
                         onClick={(e) => e.stopPropagation()}
                         style={{ width: "1rem", height: "1rem", accentColor: "#6366f1", cursor: "pointer" }}
                       />
-                      <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#334155" }}>{group.group}</span>
+                      <span id={`role-permission-group-${groupIndex}-label`} style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#334155" }}>{group.group}</span>
                     </div>
 
                     {/* Permission items */}
@@ -260,6 +284,7 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
                         return (
                           <label
                             key={perm.key}
+                            htmlFor={`role-permission-${perm.key}`}
                             style={{
                               display: "flex", alignItems: "center", gap: "0.625rem",
                               padding: "0.75rem 1rem", cursor: "pointer",
@@ -270,6 +295,9 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
                             }}
                           >
                             <input
+                              id={`role-permission-${perm.key}`}
+                              name="permissions"
+                              value={perm.key}
                               type="checkbox"
                               checked={checked}
                               onChange={() => togglePermission(perm.key)}
@@ -287,7 +315,7 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
                 );
               })}
             </div>
-          </div>
+          </fieldset>
 
           {/* Divider */}
           <div style={{ height: "1px", background: "#f0f2f8" }} />
@@ -296,8 +324,9 @@ export default function RoleModal({ open, onClose, role: editRole, refreshRoles 
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button
               type="button"
-              onClick={onClose}
-              style={{ flex: 1, padding: "0.8125rem 1rem", fontSize: "0.9rem", fontWeight: 600, borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: "pointer" }}
+              onClick={requestClose}
+              disabled={loading}
+              style={{ flex: 1, padding: "0.8125rem 1rem", fontSize: "0.9rem", fontWeight: 600, borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", background: "#f8faff", color: "#475569", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
             >
               Cancel
             </button>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { getErrorMessage } from "@/lib/errors";
 
 export async function GET() {
   try {
@@ -19,9 +20,9 @@ export async function GET() {
     });
 
     return NextResponse.json(users);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { message: error.message },
+      { message: getErrorMessage(error, "Failed to fetch users.") },
       { status: 500 }
     );
   }

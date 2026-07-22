@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { getErrorCode, getErrorMessage } from "@/lib/errors";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -99,9 +100,9 @@ export async function PUT(req: NextRequest) {
           isActive: isActive ?? true,
           updatedAt: new Date(),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         return NextResponse.json(
-          { message: err.message || "Failed to update login account." },
+          { message: getErrorMessage(err, "Failed to update login account.") },
           { status: 400 }
         );
       }
@@ -140,9 +141,9 @@ export async function PUT(req: NextRequest) {
           isActive: isActive ?? true,
           createdAt: new Date(),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         return NextResponse.json(
-          { message: err.message || "Failed to create login account." },
+          { message: getErrorMessage(err, "Failed to create login account.") },
           { status: 400 }
         );
       }
@@ -150,10 +151,10 @@ export async function PUT(req: NextRequest) {
       // Revoking login entirely
       try {
         await adminAuth.deleteUser(previousUserId);
-      } catch (err: any) {
-        if (err.code !== "auth/user-not-found") {
+      } catch (err: unknown) {
+        if (getErrorCode(err) !== "auth/user-not-found") {
           return NextResponse.json(
-            { message: err.message || "Failed to remove login account." },
+            { message: getErrorMessage(err, "Failed to remove login account.") },
             { status: 400 }
           );
         }

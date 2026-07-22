@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/Context/AuthContext";
+import { AppLoader } from "@/components/ui/AppState";
 
 export default function ProtectedRoute({
   children,
@@ -19,7 +20,7 @@ export default function ProtectedRoute({
   }, [user, loading, router]);
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return <AppLoader fullPage label="Preparing your workspace…" />;
   }
 
   if (!user) return null;

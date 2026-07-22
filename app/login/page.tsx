@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/Context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import { AppLoader } from "@/components/ui/AppState";
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +16,10 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [openForgot, setOpenForgot] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) router.replace("/dashboard");
+  }, [authLoading, router, user]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,34 +29,49 @@ export default function LoginPage() {
       await login(email, password);
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const code = typeof err === "object" && err && "code" in err ? String(err.code) : "";
+      if (["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"].includes(code)) {
+        setError("Email or password is incorrect.");
+      } else if (code === "auth/invalid-email") {
+        setError("Enter a valid email address.");
+      } else if (code === "auth/too-many-requests") {
+        setError("Too many attempts. Wait a moment and try again.");
+      } else if (code === "auth/network-request-failed") {
+        setError("Check your internet connection and try again.");
+      } else {
+        setError("Unable to sign in. Please try again.");
+      }
     }
     setLoading(false);
   };
 
   /* shared focus/blur handlers */
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#F88F22";
-    e.target.style.boxShadow = "0 0 0 3px rgba(248,143,34,0.12)";
-    e.target.style.background = "#fff";
+    e.target.style.borderColor = "var(--color-primary)";
+    e.target.style.boxShadow = "0 0 0 3px var(--color-primary-soft)";
+    e.target.style.background = "var(--color-bg-surface)";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#E4E4E6";
+    e.target.style.borderColor = "var(--color-border)";
     e.target.style.boxShadow = "none";
-    e.target.style.background = "#F2F2F3";
+    e.target.style.background = "var(--color-control-bg)";
   };
 
+  if (authLoading || user) return <AppLoader fullPage label="Checking your session…" />;
+
   return (
-    <div
+    <main
+      className="login-page"
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "1rem",
-        background: "linear-gradient(135deg, #EA6113 0%, #F17A1A 45%, #F88F22 100%)",
+        background: "linear-gradient(135deg, #312e81 0%, #4f46e5 48%, #9d174d 100%)",
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
       }}
     >
       {/* decorative blobs */}
@@ -68,9 +88,10 @@ export default function LoginPage() {
 
       {/* Card */}
       <div
+        className="login-card"
         style={{
           position: "relative",
-          background: "#ffffff",
+          background: "var(--color-bg-surface)",
           borderRadius: "1.5rem",
           width: "100%",
           maxWidth: "440px",
@@ -83,7 +104,7 @@ export default function LoginPage() {
         <div
           style={{
             height: "6px",
-            background: "linear-gradient(90deg, #EA6113, #F88F22, #FBB931)",
+            background: "var(--gradient-brand)",
           }}
         />
 
@@ -93,8 +114,8 @@ export default function LoginPage() {
           <div style={{
             width: "3.25rem", height: "3.25rem",
             borderRadius: "1rem",
-            background: "linear-gradient(135deg, #EA6113, #F88F22)",
-            boxShadow: "0 8px 24px rgba(248,143,34,0.4)",
+            background: "var(--gradient-brand)",
+            boxShadow: "0 8px 24px rgba(var(--color-primary-rgb),0.35)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 1.25rem",
             fontSize: "1.25rem", fontWeight: 900, color: "#fff",
@@ -105,12 +126,12 @@ export default function LoginPage() {
 
           <h1 style={{
             fontSize: "1.625rem", fontWeight: 800,
-            color: "#1A1A1E", letterSpacing: "-0.025em",
+            color: "var(--color-text-primary)", letterSpacing: "-0.025em",
             margin: "0 0 0.375rem",
           }}>
             Welcome back
           </h1>
-          <p style={{ fontSize: "0.875rem", color: "#63636A", margin: 0 }}>
+          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", margin: 0 }}>
             Employee Management System
           </p>
         </div>
@@ -118,12 +139,16 @@ export default function LoginPage() {
         {/* ── Form ── */}
         <form
           onSubmit={handleLogin}
+          aria-describedby={error ? "login-error" : undefined}
           style={{ padding: "2rem 2.5rem 2.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}
         >
 
           {/* Error */}
           {error && (
             <div
+              id="login-error"
+              role="alert"
+              aria-live="assertive"
               style={{
                 display: "flex", alignItems: "flex-start", gap: "0.625rem",
                 padding: "0.875rem 1rem",
@@ -140,9 +165,9 @@ export default function LoginPage() {
 
           {/* Email */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <label style={{
+            <label htmlFor="login-email" style={{
               fontSize: "0.75rem", fontWeight: 700,
-              color: "#63636A", letterSpacing: "0.06em",
+              color: "var(--color-text-secondary)", letterSpacing: "0.06em",
               textTransform: "uppercase",
             }}>
               Email Address
@@ -153,24 +178,28 @@ export default function LoginPage() {
                 style={{
                   position: "absolute", left: "0.875rem",
                   top: "50%", transform: "translateY(-50%)",
-                  pointerEvents: "none", color: "#98989E",
+                  pointerEvents: "none", color: "var(--color-text-muted)",
                 }}
               />
               <input
+                id="login-email"
+                autoComplete="username"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                aria-invalid={!!error}
+                aria-describedby={error ? "login-error" : undefined}
                 style={{
                   width: "100%",
                   padding: "0.8125rem 0.875rem 0.8125rem 2.625rem",
                   fontSize: "0.9375rem",
                   fontFamily: "inherit",
-                  background: "#F2F2F3",
-                  border: "1.5px solid #E4E4E6",
+                  background: "var(--color-control-bg)",
+                  border: "1.5px solid var(--color-border)",
                   borderRadius: "0.75rem",
-                  color: "#1A1A1E",
+                  color: "var(--color-text-primary)",
                   outline: "none",
                   transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
                   boxSizing: "border-box",
@@ -183,9 +212,9 @@ export default function LoginPage() {
 
           {/* Password */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <label style={{
+            <label htmlFor="login-password" style={{
               fontSize: "0.75rem", fontWeight: 700,
-              color: "#63636A", letterSpacing: "0.06em",
+              color: "var(--color-text-secondary)", letterSpacing: "0.06em",
               textTransform: "uppercase",
             }}>
               Password
@@ -196,24 +225,28 @@ export default function LoginPage() {
                 style={{
                   position: "absolute", left: "0.875rem",
                   top: "50%", transform: "translateY(-50%)",
-                  pointerEvents: "none", color: "#98989E",
+                  pointerEvents: "none", color: "var(--color-text-muted)",
                 }}
               />
               <input
+                id="login-password"
+                autoComplete="current-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                aria-invalid={!!error}
+                aria-describedby={error ? "login-error" : undefined}
                 style={{
                   width: "100%",
                   padding: "0.8125rem 2.5rem 0.8125rem 2.625rem",
                   fontSize: "0.9375rem",
                   fontFamily: "inherit",
-                  background: "#F2F2F3",
-                  border: "1.5px solid #E4E4E6",
+                  background: "var(--color-control-bg)",
+                  border: "1.5px solid var(--color-border)",
                   borderRadius: "0.75rem",
-                  color: "#1A1A1E",
+                  color: "var(--color-text-primary)",
                   outline: "none",
                   transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
                   boxSizing: "border-box",
@@ -224,7 +257,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#98989E", padding: 0, display: "flex", alignItems: "center" }}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{ position: "absolute", right: "0.675rem", top: "50%", transform: "translateY(-50%)", width: "2.25rem", height: "2.25rem", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -234,7 +268,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setOpenForgot(true)}
-              style={{ fontSize: "0.875rem", color: "#F88F22", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              style={{ minHeight: "2.5rem", fontSize: "0.875rem", color: "var(--color-primary-text)", fontWeight: 600, background: "none", border: "none", borderRadius: "0.5rem", cursor: "pointer", padding: "0.35rem 0.5rem" }}
               onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
               onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
             >
@@ -256,13 +290,13 @@ export default function LoginPage() {
               fontFamily: "inherit",
               color: "#fff",
               background: loading
-                ? "#F3C089"
-                : "linear-gradient(135deg, #EA6113, #F88F22)",
+                ? "#818cf8"
+                : "var(--gradient-brand)",
               border: "none",
               borderRadius: "0.75rem",
               cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.8 : 1,
-              boxShadow: "0 4px 18px rgba(248,143,34,0.4)",
+              boxShadow: "0 4px 18px rgba(var(--color-primary-rgb),0.35)",
               transition: "box-shadow 0.2s, transform 0.15s",
               display: "flex",
               alignItems: "center",
@@ -271,12 +305,12 @@ export default function LoginPage() {
             }}
             onMouseEnter={(e) => {
               if (!loading) {
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px rgba(248,143,34,0.52)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px rgba(var(--color-primary-rgb),0.48)";
                 (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
               }
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 18px rgba(248,143,34,0.4)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 18px rgba(var(--color-primary-rgb),0.35)";
               (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
             }}
           >
@@ -301,6 +335,6 @@ export default function LoginPage() {
   open={openForgot}
   onClose={() => setOpenForgot(false)}
 />
-    </div>
+    </main>
   );
 }

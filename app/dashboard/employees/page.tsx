@@ -12,8 +12,18 @@ import { Employee } from "@/types/employee";
 import { SalaryRecord } from "@/types/salary";
 import { emptySalaryFor } from "@/lib/salary";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
+import PageIntro from "@/components/ui/PageIntro";
+import { LoadError } from "@/components/ui/AppState";
+import PermissionGuard from "@/components/PermissionGuard";
+import { useAuth } from "@/Context/AuthContext";
 
 export default function EmployeesPage() {
+  return <PermissionGuard permission="employees"><EmployeesContent /></PermissionGuard>;
+}
+
+function EmployeesContent() {
+  const { role, permissions } = useAuth();
+  const canManageSalary = role === "admin" || permissions.includes("salary");
   const emptyEmployee: Employee = {
     employeeId: "",
     userId: "",
@@ -37,6 +47,7 @@ export default function EmployeesPage() {
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const [search, setSearch] = useState("");
 
@@ -60,14 +71,31 @@ export default function EmployeesPage() {
   async function fetchEmployees() {
     try {
       setLoading(true);
+      setLoadError("");
 
       const res = await fetch("/api/employees/list");
 
+      if (!res.ok) {
+        let message = "Failed to load employee records.";
+        try {
+          const errorData = (await res.json()) as { message?: string };
+          message = errorData.message || message;
+        } catch {
+          // Keep the module-specific fallback when the error body is not JSON.
+        }
+        throw new Error(message);
+      }
+
       const data = await res.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("The employee list returned an invalid response.");
+      }
 
       setEmployees(data);
     } catch (error) {
       console.error(error);
+      setLoadError(error instanceof Error ? error.message : "Failed to load employee records.");
     } finally {
       setLoading(false);
     }
@@ -178,46 +206,15 @@ export default function EmployeesPage() {
 
   return (
     <div className="page-root">
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: "1rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: "1.375rem",
-              fontWeight: 800,
-              color: "#0f172a",
-              margin: 0,
-            }}
-          >
-            Employee Management
-          </h1>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "#64748b",
-              marginTop: "0.25rem",
-            }}
-          >
-            Manage employee records, roles and access
-          </p>
-        </div>
+      <PageIntro description="Manage employee records, roles and access" actions={
         <button
           onClick={handleAdd}
           className="btn btn-primary"
-          style={{ padding: "0.75rem 1.25rem" }}
         >
           <Plus size={16} />
           Add Employee
         </button>
-      </div>
+      } />
 
       {/* Stat cards */}
       <div
@@ -264,7 +261,7 @@ export default function EmployeesPage() {
                   margin: 0,
                 }}
               >
-                {s.value}
+                {loading || loadError ? "—" : s.value}
               </p>
               <p
                 style={{
@@ -297,6 +294,7 @@ export default function EmployeesPage() {
           <Search size={14} style={iconStyle} />
           <input
             type="text"
+            aria-label="Search employees"
             placeholder="Search employee..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -308,6 +306,7 @@ export default function EmployeesPage() {
 
         <div style={{ ...inputWrap, position: "relative" }}>
           <select
+            aria-label="Filter employees by department"
             value={departmentFilter}
             onChange={(e) => setDepartmentFilter(e.target.value)}
             style={{
@@ -344,6 +343,7 @@ export default function EmployeesPage() {
 
         <div style={{ ...inputWrap, position: "relative" }}>
           <select
+            aria-label="Filter employees by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{
@@ -377,14 +377,23 @@ export default function EmployeesPage() {
       </div>
 
       {/* Employee Table */}
-      <EmployeeTable
-        employees={filteredEmployees}
-        loading={loading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onAddSalary={handleAddSalary}
-        onViewSalaryHistory={handleViewSalaryHistory}
-      />
+      {loadError ? (
+        <div className="card">
+          <LoadError message={loadError} onRetry={fetchEmployees} />
+        </div>
+      ) : (
+        <EmployeeTable
+          employees={filteredEmployees}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onAddSalary={handleAddSalary}
+          onViewSalaryHistory={handleViewSalaryHistory}
+          canManageSalary={canManageSalary}
+          emptyTitle={search || departmentFilter || statusFilter ? "No employees match your filters" : undefined}
+          emptyDescription={search || departmentFilter || statusFilter ? "Adjust or clear the filters to see more employees." : undefined}
+        />
+      )}
 
       {/* Employee Modal */}
       <EmployeeModal
@@ -392,6 +401,7 @@ export default function EmployeesPage() {
         onClose={() => setModalOpen(false)}
         employee={selectedEmployee}
         refreshEmployees={fetchEmployees}
+        canManageSalary={canManageSalary}
       />
 
       {/* Delete Modal */}

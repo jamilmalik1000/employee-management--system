@@ -12,19 +12,21 @@ interface Props {
   onEdit?: (record: Attendance) => void;
   onDelete?: (record: Attendance) => void;
   readOnly?: boolean;
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 const statusMeta: Record<string, { color: string; bg: string; border: string }> = {
-  Present:  { color: "#059669", bg: "rgba(5,150,105,0.07)",  border: "rgba(5,150,105,0.15)" },
-  Absent:   { color: "#ef4444", bg: "rgba(239,68,68,0.07)",  border: "rgba(239,68,68,0.15)" },
-  Late:     { color: "#d97706", bg: "rgba(217,119,6,0.07)",  border: "rgba(217,119,6,0.15)" },
-  "Half Day": { color: "#7c3aed", bg: "rgba(124,58,237,0.07)", border: "rgba(124,58,237,0.15)" },
-  Leave:    { color: "#2563eb", bg: "rgba(37,99,235,0.07)",  border: "rgba(37,99,235,0.15)" },
+  Present:  { color: "var(--status-success-text)", bg: "rgba(5,150,105,0.1)",  border: "rgba(5,150,105,0.22)" },
+  Absent:   { color: "var(--status-danger-text)", bg: "rgba(239,68,68,0.1)",  border: "rgba(239,68,68,0.22)" },
+  Late:     { color: "var(--status-warning-text)", bg: "rgba(217,119,6,0.1)",  border: "rgba(217,119,6,0.22)" },
+  "Half Day": { color: "var(--status-purple-text)", bg: "rgba(124,58,237,0.1)", border: "rgba(124,58,237,0.22)" },
+  Leave:    { color: "var(--status-info-text)", bg: "rgba(37,99,235,0.1)",  border: "rgba(37,99,235,0.22)" },
 };
 
 const defaultMeta = { color: "#6366f1", bg: "rgba(99,102,241,0.07)", border: "rgba(99,102,241,0.15)" };
 
-export default function AttendanceTable({ attendance, loading, onEdit, onDelete, readOnly }: Props) {
+export default function AttendanceTable({ attendance, loading, onEdit, onDelete, readOnly, emptyTitle = "No attendance records", emptyDescription }: Props) {
   const pagination = usePagination(attendance);
   return (
     <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf4", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", overflow: "hidden" }}>
@@ -48,13 +50,13 @@ export default function AttendanceTable({ attendance, loading, onEdit, onDelete,
       ) : attendance.length === 0 ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "5rem 1rem", gap: "0.75rem" }}>
           <CalendarCheck size={48} color="#e2e8f0" />
-          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>No attendance records</p>
+          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#64748b", margin: 0 }}>{emptyTitle}</p>
           <p style={{ fontSize: "0.8125rem", color: "#94a3b8", margin: 0 }}>
-            {readOnly ? "Your attendance history will show up here." : 'Click "Add Attendance" to mark the first record.'}
+            {emptyDescription ?? (readOnly ? "Your attendance history will show up here." : 'Click "Add Attendance" to mark the first record.')}
           </p>
         </div>
       ) : (
-        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div className="table-scroll-region" role="region" aria-label="Attendance table, scroll horizontally for more columns" tabIndex={0} style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "640px" }}>
             <thead>
               <tr style={{ background: "#f8faff", borderBottom: "1px solid #f0f2f8" }}>
@@ -65,12 +67,12 @@ export default function AttendanceTable({ attendance, loading, onEdit, onDelete,
                   { label: "Check In",  hide: "sm" },
                   { label: "Check Out", hide: "sm" },
                   { label: "Remarks",   hide: "md" },
-                  ...(readOnly ? [] : [{ label: "Actions", hide: "" }]),
+                  { label: readOnly ? "Details" : "Actions", hide: "" },
                 ].map((col) => (
                   <th
                     key={col.label}
                     className={col.hide ? `hidden ${col.hide}:table-cell` : ""}
-                    style={{ padding: "0.875rem 1rem", textAlign: col.label === "Actions" ? "center" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}
+                    style={{ padding: "0.875rem 1rem", textAlign: col.label === "Actions" || col.label === "Details" ? "center" : "left", fontSize: "0.6875rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}
                   >
                     {col.label}
                   </th>
@@ -125,12 +127,9 @@ export default function AttendanceTable({ attendance, loading, onEdit, onDelete,
                       {record.remarks || <span style={{ color: "#cbd5e1" }}>—</span>}
                     </td>
 
-                    {/* Actions */}
-                    {!readOnly && (
-                      <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
-                        <div className="flex justify-center"><ActionsMenu details={{ title: `${record.employeeName} · ${record.date}`, data: record }} items={[{ label: "Edit", icon: Pencil, onClick: () => onEdit?.(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete?.(record) }]} /></div>
-                      </td>
-                    )}
+                    <td style={{ padding: "0.875rem 1rem", textAlign: "center" }}>
+                      <div className="flex justify-center"><ActionsMenu details={{ title: `${record.employeeName} · ${record.date}`, data: record }} items={readOnly ? [] : [{ label: "Edit", icon: Pencil, onClick: () => onEdit?.(record) }, { label: "Delete", icon: Trash2, danger: true, onClick: () => onDelete?.(record) }]} /></div>
+                    </td>
                   </tr>
                 );
               })}

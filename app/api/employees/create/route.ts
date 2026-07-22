@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { getErrorMessage } from "@/lib/errors";
 
 function generateEmployeeId() {
   return (
@@ -122,9 +123,9 @@ export async function POST(req: NextRequest) {
           isActive: isActive ?? true,
           createdAt: new Date(),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         return NextResponse.json(
-          { message: err.message || "Failed to create login account." },
+          { message: getErrorMessage(err, "Failed to create login account.") },
           { status: 400 }
         );
       }

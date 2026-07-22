@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import './globals.css';
 import { AuthProvider } from "@/Context/AuthContext";
 import { ThemeProvider } from "@/Context/ThemeContext";
-import { Toaster } from "sonner";
+import AppToaster from "@/components/AppToaster";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -25,8 +25,8 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
+          <AppToaster />
         </ThemeProvider>
-        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

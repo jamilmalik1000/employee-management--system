@@ -6,6 +6,9 @@ import UserTable from "@/components/Users/UserTable";
 import UserModal from "@/components/Users/UserModal";
 import DeleteUserModal from "@/components/Users/DeleteUserModal";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
+import PageIntro from "@/components/ui/PageIntro";
+import { LoadError } from "@/components/ui/AppState";
+import PermissionGuard from "@/components/PermissionGuard";
 
 export interface User {
   id: string;
@@ -20,8 +23,13 @@ export interface User {
 const emptyUser: User = { id: "", name: "", email: "", role: "employee", department: "", employeeId: "", isActive: true };
 
 export default function UsersPage() {
+  return <PermissionGuard permission="users"><UsersContent /></PermissionGuard>;
+}
+
+function UsersContent() {
   const [users, setUsers]           = useState<User[]>([]);
   const [loading, setLoading]       = useState(true);
+  const [loadError, setLoadError]   = useState("");
   const [openModal, setOpenModal]   = useState(false);
   const [editingUser, setEditingUser] = useState<User>(emptyUser);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -30,14 +38,34 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     setLoading(true);
+    setLoadError("");
     try {
       const res = await fetch("/api/users/list");
+
+      if (!res.ok) {
+        let message = "Failed to load users.";
+        try {
+          const errorData = (await res.json()) as { message?: string };
+          message = errorData.message || message;
+        } catch {
+          // Keep the module-specific fallback when the error body is not JSON.
+        }
+        throw new Error(message);
+      }
+
       const data = await res.json();
-      setUsers(Array.isArray(data) ? data : []);
+
+      if (!Array.isArray(data)) {
+        throw new Error("The user list returned an invalid response.");
+      }
+
+      setUsers(data);
     } catch (err) {
       console.error(err);
+      setLoadError(err instanceof Error ? err.message : "Failed to load users.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchUsers(); }, []);
@@ -65,20 +93,12 @@ export default function UsersPage() {
   return (
     <div className="page-root">
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Users & Permissions</h1>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>Manage admins, HR staff and employees</p>
-        </div>
-        <button
-          onClick={handleAdd}
-          style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.25rem", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}
-        >
+      <PageIntro description="Manage admins, HR staff and employees" actions={
+        <button onClick={handleAdd} className="btn btn-primary">
           <Plus size={16} />
           Add User
         </button>
-      </div>
+      } />
 
       {/* Stat cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
@@ -92,7 +112,7 @@ export default function UsersPage() {
               {s.icon}
             </div>
             <div>
-              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{s.value}</p>
+              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{loading || loadError ? "—" : s.value}</p>
               <p style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600, marginTop: "0.25rem" }}>{s.label}</p>
             </div>
           </div>
@@ -114,6 +134,7 @@ export default function UsersPage() {
           <Search size={14} style={iconStyle} />
           <input
             type="text"
+            aria-label="Search users"
             placeholder="Search users..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -125,7 +146,20 @@ export default function UsersPage() {
       </div>
 
       {/* Table */}
-      <UserTable users={filteredUsers} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
+      {loadError ? (
+        <div className="card">
+          <LoadError message={loadError} onRetry={fetchUsers} />
+        </div>
+      ) : (
+        <UserTable
+          users={filteredUsers}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          emptyTitle={search ? "No users match your search" : undefined}
+          emptyDescription={search ? "Try a different name, email, role, or department." : undefined}
+        />
+      )}
 
       {/* Modals */}
       <UserModal

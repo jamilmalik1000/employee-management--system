@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X, Plus, User, Mail, Building2, BadgeCheck, ChevronDown, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
 import RoleModal, { Role } from "@/components/roles/RoleModal";
 
@@ -46,7 +46,7 @@ export default function UserForm({ refreshUsers }: UserFormProps) {
   const [rolesLoading, setRolesLoading] = useState(false);
   const [roleModalOpen, setRoleModalOpen] = useState(false);
 
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     setRolesLoading(true);
     try {
       const res  = await fetch("/api/roles/list");
@@ -54,12 +54,14 @@ export default function UserForm({ refreshUsers }: UserFormProps) {
       const list: Role[] = Array.isArray(data) ? data : [];
       setRoles(list);
       // Auto-select first role if none selected
-      if (!form.role && list.length > 0) setForm((p) => ({ ...p, role: list[0].name }));
+      if (list.length > 0) {
+        setForm((current) => current.role ? current : { ...current, role: list[0].name });
+      }
     } catch { /* silent */ }
     setRolesLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { if (isOpen) fetchRoles(); }, [isOpen]);
+  useEffect(() => { if (isOpen) void fetchRoles(); }, [isOpen, fetchRoles]);
 
   const set = (field: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -187,7 +189,7 @@ export default function UserForm({ refreshUsers }: UserFormProps) {
                   </button>
                 </div>
                 <p style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.375rem" }}>
-                  Can't find the role? Click <strong style={{ color: "#6366f1" }}>+</strong> to create a new one.
+                  Can&apos;t find the role? Click <strong style={{ color: "#6366f1" }}>+</strong> to create a new one.
                 </p>
               </div>
 

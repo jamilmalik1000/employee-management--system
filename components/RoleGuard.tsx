@@ -3,9 +3,10 @@
 import { useAuth } from "@/Context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { AccessDenied, AppLoader } from "@/components/ui/AppState";
 
 interface RoleGuardProps {
-  allowedRoles: ("admin" | "hr" | "employee")[];
+  allowedRoles: string[];
   children: React.ReactNode;
 }
 
@@ -23,11 +24,11 @@ export default function RoleGuard({
   }, [role, loading, allowedRoles, router]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <AppLoader label="Checking access…" />;
   }
 
   if (!role || !allowedRoles.includes(role)) {
-    return null;
+    return <AccessDenied />;
   }
 
   return <>{children}</>;

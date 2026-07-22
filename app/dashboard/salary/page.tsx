@@ -8,10 +8,18 @@ import DeleteSalaryModal from "@/components/salary/DeleteSalaryModal";
 import { SalaryRecord } from "@/types/salary";
 import { emptySalary } from "@/lib/salary";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
+import PageIntro from "@/components/ui/PageIntro";
+import { LoadError } from "@/components/ui/AppState";
+import PermissionGuard from "@/components/PermissionGuard";
 
 export default function SalaryPage() {
+  return <PermissionGuard permission="salary"><SalaryContent /></PermissionGuard>;
+}
+
+function SalaryContent() {
   const [records, setRecords] = useState<SalaryRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const [salaryModalOpen, setSalaryModalOpen] = useState(false);
   const [editingSalary, setEditingSalary] = useState<SalaryRecord | null>(null);
@@ -25,14 +33,34 @@ export default function SalaryPage() {
 
   const fetchRecords = async () => {
     setLoading(true);
+    setLoadError("");
     try {
       const res = await fetch("/api/salary/list");
+
+      if (!res.ok) {
+        let message = "Failed to load salary records.";
+        try {
+          const errorData = (await res.json()) as { message?: string };
+          message = errorData.message || message;
+        } catch {
+          // Keep the module-specific fallback when the error body is not JSON.
+        }
+        throw new Error(message);
+      }
+
       const data = await res.json();
-      setRecords(Array.isArray(data) ? data : []);
+
+      if (!Array.isArray(data)) {
+        throw new Error("The salary list returned an invalid response.");
+      }
+
+      setRecords(data);
     } catch (err) {
       console.error(err);
+      setLoadError(err instanceof Error ? err.message : "Failed to load salary records.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchRecords(); }, []);
@@ -59,26 +87,20 @@ export default function SalaryPage() {
   return (
     <div className="page-root">
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "var(--color-text-primary)", margin: 0 }}>Salary Management</h1>
-          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginTop: "0.25rem" }}>Add and track employee salary payments</p>
-        </div>
+      <PageIntro description="Add and track employee salary payments" actions={
         <button
           onClick={handleAdd}
           className="btn btn-primary"
-          style={{ padding: "0.75rem 1.25rem" }}
         >
           <Plus size={16} />
           Add Salary
         </button>
-      </div>
+      } />
 
       {/* Stat cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
         {[
-          { label: "Total Payroll", value: totalPayroll.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), icon: "💰", color: "var(--color-primary)", bg: "var(--color-primary-soft)", border: "rgba(var(--color-primary-rgb),0.18)" },
+          { label: "Total Payroll", value: totalPayroll.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), icon: "💰", color: "var(--color-primary-text)", bg: "var(--color-primary-soft)", border: "rgba(var(--color-primary-rgb),0.18)" },
           { label: "Paid",          value: paidCount,     icon: "✅", color: "#059669", bg: "rgba(5,150,105,0.08)",  border: "rgba(5,150,105,0.15)"  },
           { label: "Pending",       value: pendingCount,  icon: "⏳", color: "#d97706", bg: "rgba(217,119,6,0.08)",  border: "rgba(217,119,6,0.15)"  },
           { label: "Employees Paid", value: employeeCount, icon: "👥", color: "var(--color-accent)", bg: "var(--color-accent-soft)", border: "rgba(var(--color-accent-rgb),0.2)" },
@@ -88,7 +110,7 @@ export default function SalaryPage() {
               {s.icon}
             </div>
             <div>
-              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{s.value}</p>
+              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{loading || loadError ? "—" : s.value}</p>
               <p style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)", fontWeight: 600, marginTop: "0.25rem" }}>{s.label}</p>
             </div>
           </div>
@@ -104,6 +126,7 @@ export default function SalaryPage() {
           <Search size={14} style={iconStyle} />
           <input
             type="text"
+            aria-label="Search salary records by employee"
             placeholder="Search by employee…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -124,6 +147,7 @@ export default function SalaryPage() {
 
         <div style={{ position: "relative" }}>
           <select
+            aria-label="Filter salary records by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{ ...inputBase, paddingLeft: "0.875rem", paddingRight: "2.5rem", appearance: "none", cursor: "pointer" }}
@@ -139,7 +163,21 @@ export default function SalaryPage() {
       </div>
 
       {/* Table */}
-      <SalaryTable records={filteredRecords} loading={loading} onEdit={handleEdit} onDelete={handleDelete} showEmployeeColumn />
+      {loadError ? (
+        <div className="card">
+          <LoadError message={loadError} onRetry={fetchRecords} />
+        </div>
+      ) : (
+        <SalaryTable
+          records={filteredRecords}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          showEmployeeColumn
+          emptyTitle={search || monthFilter || statusFilter ? "No salary records match your filters" : undefined}
+          emptyDescription={search || monthFilter || statusFilter ? "Adjust or clear the filters to see more records." : undefined}
+        />
+      )}
 
       {/* Modals */}
       {editingSalary && (

@@ -6,15 +6,23 @@ import ExpenseTable from "@/components/expenses/ExpenseTable";
 import ExpenseModal from "@/components/expenses/ExpenseModal";
 import DeleteExpenseModal from "@/components/expenses/DeleteExpenseModal";
 import { Expense } from "@/types/expense";
+import PageIntro from "@/components/ui/PageIntro";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
+import { LoadError } from "@/components/ui/AppState";
+import PermissionGuard from "@/components/PermissionGuard";
 
 const emptyExpense: Expense = { id: "", title: "", category: "", amount: "", date: "", status: "Pending", notes: "" };
 
 const CATEGORY_OPTIONS = ["Travel", "Office Supplies", "Utilities", "Software", "Maintenance", "Other"];
 
 export default function ExpensesPage() {
+  return <PermissionGuard permission="expenses"><ExpensesContent /></PermissionGuard>;
+}
+
+function ExpensesContent() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense>(emptyExpense);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -26,14 +34,34 @@ export default function ExpensesPage() {
 
   const fetchExpenses = async () => {
     setLoading(true);
+    setLoadError("");
     try {
       const res = await fetch("/api/expenses/list");
+
+      if (!res.ok) {
+        let message = "Failed to load expenses.";
+        try {
+          const errorData = (await res.json()) as { message?: string };
+          message = errorData.message || message;
+        } catch {
+          // Keep the module-specific fallback when the error body is not JSON.
+        }
+        throw new Error(message);
+      }
+
       const data = await res.json();
-      setExpenses(Array.isArray(data) ? data : []);
+
+      if (!Array.isArray(data)) {
+        throw new Error("The expense list returned an invalid response.");
+      }
+
+      setExpenses(data);
     } catch (err) {
       console.error(err);
+      setLoadError(err instanceof Error ? err.message : "Failed to load expenses.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchExpenses(); }, []);
@@ -60,20 +88,12 @@ export default function ExpensesPage() {
   return (
     <div className="page-root">
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Expense Management</h1>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>Track and manage company expenses</p>
-        </div>
-        <button
-          onClick={handleAdd}
-          style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.25rem", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}
-        >
+      <PageIntro description="Track and manage company expenses" actions={
+        <button onClick={handleAdd} className="btn btn-primary">
           <Plus size={16} />
           Add Expense
         </button>
-      </div>
+      } />
 
       {/* Stat cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
@@ -88,7 +108,7 @@ export default function ExpensesPage() {
               {s.icon}
             </div>
             <div>
-              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{s.value}</p>
+              <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{loading || loadError ? "—" : s.value}</p>
               <p style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600, marginTop: "0.25rem" }}>{s.label}</p>
             </div>
           </div>
@@ -104,6 +124,7 @@ export default function ExpensesPage() {
           <Search size={14} style={iconStyle} />
           <input
             type="text"
+            aria-label="Search expenses"
             placeholder="Search expenses..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -115,6 +136,7 @@ export default function ExpensesPage() {
 
         <div style={{ position: "relative" }}>
           <select
+            aria-label="Filter expenses by category"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             style={{ ...inputBase, paddingLeft: "0.875rem", paddingRight: "2.5rem", appearance: "none", cursor: "pointer" }}
@@ -131,6 +153,7 @@ export default function ExpensesPage() {
 
         <div style={{ position: "relative" }}>
           <select
+            aria-label="Filter expenses by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{ ...inputBase, paddingLeft: "0.875rem", paddingRight: "2.5rem", appearance: "none", cursor: "pointer" }}
@@ -147,7 +170,20 @@ export default function ExpensesPage() {
       </div>
 
       {/* Table */}
-      <ExpenseTable expenses={filteredExpenses} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
+      {loadError ? (
+        <div className="card">
+          <LoadError message={loadError} onRetry={fetchExpenses} />
+        </div>
+      ) : (
+        <ExpenseTable
+          expenses={filteredExpenses}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          emptyTitle={search || categoryFilter || statusFilter ? "No expenses match your filters" : undefined}
+          emptyDescription={search || categoryFilter || statusFilter ? "Adjust or clear the filters to see more expenses." : undefined}
+        />
+      )}
 
       {/* Modals */}
       <ExpenseModal

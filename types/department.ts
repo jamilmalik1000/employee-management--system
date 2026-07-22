@@ -7,7 +7,7 @@ export interface Department {
 
   isActive: boolean;
 
-  createdAt?: any;
+  createdAt?: unknown;
 
-  updatedAt?: any;
+  updatedAt?: unknown;
 }

@@ -13,6 +13,9 @@ interface Props {
   onDelete: (employee: Employee) => void;
   onAddSalary: (employee: Employee) => void;
   onViewSalaryHistory: (employee: Employee) => void;
+  canManageSalary?: boolean;
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 const typeMeta: Record<
@@ -54,6 +57,9 @@ export default function EmployeeTable({
   onDelete,
   onAddSalary,
   onViewSalaryHistory,
+  canManageSalary = false,
+  emptyTitle = "No employees yet",
+  emptyDescription = 'Click "Add Employee" to create the first one.',
 }: Props) {
   const pagination = usePagination(employees);
   return (
@@ -107,6 +113,8 @@ export default function EmployeeTable({
       {/* Loading */}
       {loading ? (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -150,7 +158,7 @@ export default function EmployeeTable({
               margin: 0,
             }}
           >
-            No employees yet
+            {emptyTitle}
           </p>
           <p
             style={{
@@ -159,11 +167,15 @@ export default function EmployeeTable({
               margin: 0,
             }}
           >
-            Click "Add Employee" to create the first one.
+            {emptyDescription}
           </p>
         </div>
       ) : (
         <div
+          className="table-scroll-region"
+          role="region"
+          aria-label="Employees table, scroll horizontally for more columns"
+          tabIndex={0}
           style={{
             overflowX: "auto",
             WebkitOverflowScrolling: "touch",
@@ -197,7 +209,7 @@ export default function EmployeeTable({
                 ].map((col) => (
                   <th
                     key={col.label}
-                    className={col.hide ? `hidden ${col.hide}:table-cell` : ""}
+                    className={`${col.hide ? `hidden ${col.hide}:table-cell` : ""}${col.label === "Employee" ? " employee-identity-column" : ""}`.trim()}
                     style={{
                       padding: "0.875rem 1rem",
                       textAlign:
@@ -254,7 +266,7 @@ export default function EmployeeTable({
                     </td>
 
                     {/* Name */}
-                    <td style={{ padding: "0.875rem 1rem" }}>
+                    <td className="employee-identity-column" style={{ padding: "0.875rem 1rem" }}>
                       <div
                         style={{
                           display: "flex",
@@ -451,6 +463,7 @@ export default function EmployeeTable({
                           onDelete={onDelete}
                           onAddSalary={onAddSalary}
                           onViewSalaryHistory={onViewSalaryHistory}
+                          canManageSalary={canManageSalary}
                         />
                       </div>
                     </td>

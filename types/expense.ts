@@ -23,7 +23,7 @@ export interface Expense {
 
   notes?: string;
 
-  createdAt?: any;
+  createdAt?: unknown;
 
-  updatedAt?: any;
+  updatedAt?: unknown;
 }

@@ -19,7 +19,7 @@ import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permission";
 
-type UserRole = "admin" | "hr" | "employee" | null;
+type UserRole = string | null;
 
 interface AuthContextType {
   user: User | null;
@@ -47,12 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // 1. Get user doc to find their role
           const userSnap = await getDoc(doc(db, "users", currentUser.uid));
           if (userSnap.exists()) {
-            const userRole = userSnap.data().role as UserRole;
+            const userRole = String(userSnap.data().role ?? "").trim().toLowerCase() || null;
             setRole(userRole);
 
             // 2. Load permissions from Firestore roles collection
             if (userRole) {
-              const normalizedRole = userRole.toLowerCase() as keyof typeof DEFAULT_ROLE_PERMISSIONS;
+              const normalizedRole = userRole;
 
               // Admin always gets full permissions — no Firestore lookup needed
               if (normalizedRole === "admin") {

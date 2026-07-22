@@ -7,10 +7,13 @@ import RoleModal, { Role } from "@/components/roles/RoleModal";
 import DeleteRoleModal from "@/components/roles/DeleteRoleModal";
 import PermissionGuard from "@/components/PermissionGuard";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
+import PageIntro from "@/components/ui/PageIntro";
+import { LoadError } from "@/components/ui/AppState";
 
 export default function RolesPage() {
   const [roles, setRoles]           = useState<Role[]>([]);
   const [loading, setLoading]       = useState(true);
+  const [loadError, setLoadError]   = useState("");
   const [modalOpen, setModalOpen]   = useState(false);
   const [editRole, setEditRole]     = useState<Role | null>(null);
   const [deleteRole, setDeleteRole] = useState<Role | null>(null);
@@ -18,14 +21,34 @@ export default function RolesPage() {
 
   const fetchRoles = async () => {
     setLoading(true);
+    setLoadError("");
     try {
       const res  = await fetch("/api/roles/list");
+
+      if (!res.ok) {
+        let message = "Failed to load roles and permissions.";
+        try {
+          const errorData = (await res.json()) as { message?: string };
+          message = errorData.message || message;
+        } catch {
+          // Keep the module-specific fallback when the error body is not JSON.
+        }
+        throw new Error(message);
+      }
+
       const data = await res.json();
-      setRoles(Array.isArray(data) ? data : []);
+
+      if (!Array.isArray(data)) {
+        throw new Error("The role list returned an invalid response.");
+      }
+
+      setRoles(data);
     } catch (err) {
       console.error(err);
+      setLoadError(err instanceof Error ? err.message : "Failed to load roles and permissions.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchRoles(); }, []);
@@ -71,28 +94,18 @@ export default function RolesPage() {
         <div className="flex flex-col items-center justify-center py-24 gap-3">
           <ShieldCheck size={48} color="#e2e8f0" />
           <p style={{ fontSize: "1rem", fontWeight: 600, color: "#64748b" }}>Access Denied</p>
-          <p style={{ fontSize: "0.875rem", color: "#94a3b8" }}>You don't have permission to manage roles.</p>
+          <p style={{ fontSize: "0.875rem", color: "#94a3b8" }}>You don’t have permission to manage roles.</p>
         </div>
       }
     >
       <div className="page-root">
 
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-          <div>
-            <h1 style={{ fontSize: "1.375rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>Roles & Permissions</h1>
-            <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.25rem" }}>
-              Define roles and control what each role can access
-            </p>
-          </div>
-          <button
-            onClick={handleCreate}
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.25rem", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, borderRadius: "0.75rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}
-          >
+        <PageIntro description="Define roles and control what each role can access" actions={
+          <button onClick={handleCreate} className="btn btn-primary">
             <Plus size={16} />
             Create Role
           </button>
-        </div>
+        } />
 
         {/* Stat cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
@@ -106,7 +119,7 @@ export default function RolesPage() {
                 {s.icon}
               </div>
               <div>
-                <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{s.value}</p>
+                <p style={{ fontSize: "1.625rem", fontWeight: 800, color: s.color, lineHeight: 1, margin: 0 }}>{loading || loadError ? "—" : s.value}</p>
                 <p style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600, marginTop: "0.25rem" }}>{s.label}</p>
               </div>
             </div>
@@ -128,6 +141,7 @@ export default function RolesPage() {
             <Search size={14} style={iconStyle} />
             <input
               type="text"
+              aria-label="Search roles"
               placeholder="Search roles..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -139,7 +153,20 @@ export default function RolesPage() {
         </div>
 
         {/* Table */}
-        <RoleTable roles={filteredRoles} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
+        {loadError ? (
+          <div className="card">
+            <LoadError message={loadError} onRetry={fetchRoles} />
+          </div>
+        ) : (
+          <RoleTable
+            roles={filteredRoles}
+            loading={loading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            emptyTitle={search ? "No roles match your search" : undefined}
+            emptyDescription={search ? "Try a different role name or description." : undefined}
+          />
+        )}
 
       </div>
 

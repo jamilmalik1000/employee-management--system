@@ -19,7 +19,7 @@ export interface Attendance {
 
   leaveRequestId?: string;
 
-  createdAt?: any;
+  createdAt?: unknown;
 
-  updatedAt?: any;
+  updatedAt?: unknown;
 }
