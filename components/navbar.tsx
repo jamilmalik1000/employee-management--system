@@ -47,7 +47,7 @@ export default function Navbar({ onMenuClick }: Props) {
         <h1 className="truncate text-base font-bold capitalize text-[var(--color-text-primary)] sm:text-lg">{pageName}</h1>
       </div>
 
-      <div className="flex shrink-0 items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface-alt)] p-1" aria-label="Theme preference">
+      <div className="flex shrink-0 items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface-alt)] p-1.5" aria-label="Theme preference">
         {themeOptions.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
@@ -55,9 +55,9 @@ export default function Navbar({ onMenuClick }: Props) {
             onClick={() => setTheme(value)}
             title={`${label} theme`}
             aria-pressed={theme === value}
-            className={`flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold transition ${theme === value ? "bg-[var(--color-bg-surface)] text-[var(--color-primary)] shadow-sm" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"}`}
+            className={`flex h-[34px] items-center gap-2 rounded-lg px-3 text-[13px] font-semibold transition ${theme === value ? "bg-[var(--color-bg-surface)] text-[var(--color-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.1)] ring-1 ring-[var(--color-border)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)]/50 hover:text-[var(--color-text-primary)]"}`}
           >
-            <Icon size={14} />
+            <Icon size={15} className={theme === value ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"} />
             <span className="hidden sm:inline">{label}</span>
           </button>
         ))}

@@ -64,18 +64,20 @@ export default function ActionsMenu({ items, details }: { items: ActionMenuItem[
       <MoreVertical size={15} />
     </button>
     {open && typeof document !== "undefined" && createPortal(
-      <div ref={menuRef} role="menu" aria-label="Actions" className="fixed z-[100] max-h-[min(320px,70dvh)] w-[200px] overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-1.5 shadow-[var(--shadow-lg)]" style={position}>
+      <div ref={menuRef} role="menu" aria-label="Actions" className="fixed z-[100] max-h-[min(320px,70dvh)] w-[220px] overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2 shadow-xl ring-1 ring-black/5 animate-slideDown" style={position}>
         {menuItems.map(({ label, icon: Icon, onClick, danger, disabled }, index) => (
           <Fragment key={`${label}-${index}`}>
-            {danger && index > 0 && <div className="my-1 border-t border-[var(--color-border)]" />}
+            {danger && index > 0 && <div className="my-1.5 mx-1 border-t border-[var(--color-border-strong)] opacity-50" />}
             <button
               type="button"
               role="menuitem"
               disabled={disabled}
               onClick={() => { setOpen(false); onClick(); }}
-              className={`flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium leading-5 transition disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "text-red-500 hover:bg-red-500/10" : "text-[var(--color-text-primary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"}`}
+              className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold leading-5 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"}`}
             >
-              <Icon size={16} className={`shrink-0 ${danger ? "text-red-500" : "text-[var(--color-primary)]"}`} />
+              <div className={`flex size-7 shrink-0 items-center justify-center rounded-md transition-colors ${danger ? "bg-red-50 text-red-500 group-hover:bg-red-100 group-hover:text-red-600 dark:bg-red-500/10 dark:group-hover:bg-red-500/20" : "bg-[var(--color-bg-surface-alt)] text-[var(--color-text-muted)] group-hover:bg-[var(--color-primary)]/10 group-hover:text-[var(--color-primary)]"}`}>
+                <Icon size={15} />
+              </div>
               <span className="truncate">{label}</span>
             </button>
           </Fragment>

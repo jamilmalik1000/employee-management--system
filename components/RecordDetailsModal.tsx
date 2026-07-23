@@ -31,9 +31,12 @@ export default function RecordDetailsModal({ title, data, onClose }: { title: st
   return createPortal(
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm sm:p-6" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <section role="dialog" aria-modal="true" aria-labelledby="record-details-title" className="record-details-print flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-2xl">
-        <header className="record-details-header flex shrink-0 items-center justify-between gap-4 bg-[var(--gradient-brand)] px-4 py-3.5 sm:px-6 sm:py-4">
-          <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-widest text-white/70">Record details</p><h2 id="record-details-title" className="truncate text-base font-bold text-white sm:text-lg">{title}</h2></div>
-          <button type="button" onClick={onClose} className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/15 text-white transition hover:bg-white/25" aria-label="Close details"><X size={17} /></button>
+        <header className="record-details-header flex shrink-0 items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-5" style={{ background: "var(--gradient-brand)" }}>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/80 mb-0.5">Record details</p>
+            <h2 id="record-details-title" className="truncate text-lg font-bold text-white sm:text-xl">{title}</h2>
+          </div>
+          <button type="button" onClick={onClose} className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/20 text-white shadow-sm backdrop-blur-sm transition hover:bg-white/30" aria-label="Close details"><X size={18} /></button>
         </header>
         <dl className="record-details-grid grid grid-cols-1 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-x-6 sm:p-6">
           {Object.entries(data).map(([key, value]) => <div key={key} className="min-w-0 border-b border-[var(--color-border)] py-3">
@@ -41,9 +44,9 @@ export default function RecordDetailsModal({ title, data, onClose }: { title: st
             <dd className="whitespace-pre-wrap break-words text-sm font-medium text-[var(--color-text-primary)]">{valueFor(value)}</dd>
           </div>)}
         </dl>
-        <footer className="record-details-actions flex shrink-0 justify-end gap-2 border-t border-[var(--color-border)] bg-[var(--color-bg-surface-alt)] px-4 py-3 sm:px-6">
-          <button type="button" onClick={() => window.print()} className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2 text-xs font-bold text-[var(--color-text-primary)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"><Printer size={15} /> Print details</button>
-          <button type="button" onClick={onClose} className="rounded-lg bg-[var(--color-primary)] px-5 py-2 text-xs font-bold text-white transition hover:bg-[var(--color-primary-hover)]">Close</button>
+        <footer className="record-details-actions flex shrink-0 justify-end gap-3 border-t border-[var(--color-border)] bg-[var(--color-bg-surface-alt)] px-4 py-4 sm:px-6">
+          <button type="button" onClick={() => window.print()} className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-[13px] font-bold text-[var(--color-text-primary)] shadow-sm transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"><Printer size={16} /> Print details</button>
+          <button type="button" onClick={onClose} className="rounded-lg border-none px-6 py-2.5 text-[13px] font-bold text-white shadow-sm transition hover:brightness-110" style={{ background: "var(--gradient-brand)" }}>Close</button>
         </footer>
       </section>
     </div>, document.body
