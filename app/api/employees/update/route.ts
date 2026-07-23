@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function errorCode(error: unknown) {
+  return typeof error === "object" && error !== null && "code" in error
+    ? String(error.code)
+    : "";
+}
+
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
@@ -10,20 +20,43 @@ export async function PUT(req: NextRequest) {
       id,
       isLogin,
       password,
+      profilePhotoUrl,
       name,
+      cnic,
       email,
       phone,
+      address,
       department,
       designation,
+      qualification,
+      joiningDate,
       employmentType,
       gender,
       basicSalary,
+      bankDetails,
+      documents,
+      emergencyContact,
       isActive,
     } = body;
 
     if (!id) {
       return NextResponse.json(
         { message: "Employee ID is required." },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !cnic ||
+      !department ||
+      !designation ||
+      !employmentType
+    ) {
+      return NextResponse.json(
+        { message: "Please fill all required fields." },
         { status: 400 }
       );
     }
@@ -77,6 +110,18 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    const cnicSnap = await adminDb
+      .collection("employees")
+      .where("cnic", "==", String(cnic).trim())
+      .get();
+
+    if (cnicSnap.docs.some((doc) => doc.id !== id)) {
+      return NextResponse.json(
+        { message: "CNIC already exists." },
+        { status: 400 }
+      );
+    }
+
     // Reconcile the login account with the isLogin toggle
     let userId = previousUserId;
 
@@ -99,9 +144,9 @@ export async function PUT(req: NextRequest) {
           isActive: isActive ?? true,
           updatedAt: new Date(),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         return NextResponse.json(
-          { message: err.message || "Failed to update login account." },
+          { message: errorMessage(err, "Failed to update login account.") },
           { status: 400 }
         );
       }
@@ -140,9 +185,9 @@ export async function PUT(req: NextRequest) {
           isActive: isActive ?? true,
           createdAt: new Date(),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         return NextResponse.json(
-          { message: err.message || "Failed to create login account." },
+          { message: errorMessage(err, "Failed to create login account.") },
           { status: 400 }
         );
       }
@@ -150,10 +195,10 @@ export async function PUT(req: NextRequest) {
       // Revoking login entirely
       try {
         await adminAuth.deleteUser(previousUserId);
-      } catch (err: any) {
-        if (err.code !== "auth/user-not-found") {
+      } catch (err: unknown) {
+        if (errorCode(err) !== "auth/user-not-found") {
           return NextResponse.json(
-            { message: err.message || "Failed to remove login account." },
+            { message: errorMessage(err, "Failed to remove login account.") },
             { status: 400 }
           );
         }
@@ -165,15 +210,39 @@ export async function PUT(req: NextRequest) {
     await employeeRef.update({
       userId,
       isLogin: isLogin || false,
+      profilePhotoUrl: String(profilePhotoUrl || "").trim(),
       name,
+      cnic: String(cnic || "").trim(),
       email,
       phone,
+      address: String(address || "").trim(),
       department,
       designation,
+      qualification: String(qualification || "").trim(),
+      joiningDate: String(joiningDate || ""),
       employmentType,
-      gender,
+      gender: String(gender || ""),
       basicSalary: Number(basicSalary) || 0,
-      isActive,
+      bankDetails: {
+        bankName: String(bankDetails?.bankName || "").trim(),
+        accountTitle: String(bankDetails?.accountTitle || "").trim(),
+        accountNumber: String(bankDetails?.accountNumber || "").trim(),
+        iban: String(bankDetails?.iban || "").trim(),
+      },
+      documents: Array.isArray(documents)
+        ? documents
+            .map((document) => ({
+              name: String(document?.name || "").trim(),
+              url: String(document?.url || "").trim(),
+            }))
+            .filter((document) => document.name || document.url)
+        : [],
+      emergencyContact: {
+        name: String(emergencyContact?.name || "").trim(),
+        relationship: String(emergencyContact?.relationship || "").trim(),
+        phone: String(emergencyContact?.phone || "").trim(),
+      },
+      isActive: isActive ?? true,
       updatedAt: Timestamp.now(),
     });
 

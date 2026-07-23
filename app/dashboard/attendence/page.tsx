@@ -47,6 +47,7 @@ function ManagementView() {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState(todayLocalISO());
   const [statusFilter, setStatusFilter] = useState("");
+  const [employeeFilter, setEmployeeFilter] = useState("");
 
   const fetchAttendance = async () => {
     setLoading(true);
@@ -61,6 +62,12 @@ function ManagementView() {
   };
 
   useEffect(() => { fetchAttendance(); }, []);
+  useEffect(() => {
+    const selectedEmployee =
+      new URLSearchParams(window.location.search).get("employeeId") || "";
+    setEmployeeFilter(selectedEmployee);
+    if (selectedEmployee) setDateFilter("");
+  }, []);
 
   const handleAdd = () => { setEditingAttendance({ ...emptyAttendance, date: todayLocalISO() }); setOpenModal(true); };
   const handleEdit = (record: Attendance) => { setEditingAttendance(record); setOpenModal(true); };
@@ -77,11 +84,13 @@ function ManagementView() {
     const keyword = search.toLowerCase();
     return attendance.filter((record) => {
       const matchesSearch = record.employeeName.toLowerCase().includes(keyword);
+      const matchesEmployee =
+        employeeFilter === "" || record.employeeId === employeeFilter;
       const matchesDate = dateFilter === "" || record.date === dateFilter;
       const matchesStatus = statusFilter === "" || record.status === statusFilter;
-      return matchesSearch && matchesDate && matchesStatus;
+      return matchesSearch && matchesEmployee && matchesDate && matchesStatus;
     });
-  }, [attendance, search, dateFilter, statusFilter]);
+  }, [attendance, search, employeeFilter, dateFilter, statusFilter]);
 
   return (
     <div className="page-root">
@@ -178,6 +187,24 @@ function ManagementView() {
           <span style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8", fontSize: "0.75rem" }}>▾</span>
         </div>
       </div>
+
+      {employeeFilter && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
+          <span className="font-semibold">
+            Showing attendance for the selected employee.
+          </span>
+          <button
+            type="button"
+            className="font-bold text-indigo-700 hover:text-indigo-900"
+            onClick={() => {
+              setEmployeeFilter("");
+              window.history.replaceState(null, "", "/dashboard/attendence");
+            }}
+          >
+            Show everyone
+          </button>
+        </div>
+      )}
 
       {/* Table */}
       <AttendanceTable attendance={filteredAttendance} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />

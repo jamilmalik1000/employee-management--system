@@ -9,6 +9,7 @@ import { usePagination } from "@/hooks/usePagination";
 interface Props {
   employees: Employee[];
   loading: boolean;
+  onView: (employee: Employee) => void;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onAddSalary: (employee: Employee) => void;
@@ -50,6 +51,7 @@ const defaultMeta = {
 export default function EmployeeTable({
   employees,
   loading,
+  onView,
   onEdit,
   onDelete,
   onAddSalary,
@@ -159,7 +161,7 @@ export default function EmployeeTable({
               margin: 0,
             }}
           >
-            Click "Add Employee" to create the first one.
+            Click &quot;Add Employee&quot; to create the first one.
           </p>
         </div>
       ) : (
@@ -447,6 +449,7 @@ export default function EmployeeTable({
                       >
                         <EmployeeActionsMenu
                           employee={employee}
+                          onView={onView}
                           onEdit={onEdit}
                           onDelete={onDelete}
                           onAddSalary={onAddSalary}

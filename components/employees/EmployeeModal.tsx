@@ -1,35 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
-  X,
-  Plus,
-  User,
-  Mail,
-  Phone,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
   BadgeCheck,
-  Briefcase,
+  Banknote,
+  BriefcaseBusiness,
   Building2,
-  Users,
-  AlertCircle,
-  Loader2,
-  ToggleLeft,
+  CalendarDays,
   ChevronDown,
-  Lock,
+  CircleUserRound,
+  ContactRound,
   Eye,
   EyeOff,
-  DollarSign,
+  FileText,
+  GraduationCap,
+  IdCard,
+  Link2,
+  Loader2,
+  Lock,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+  Save,
+  Trash2,
+  User,
+  Users,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Employee } from "@/types/employee";
+import DesignationManagerModal from "@/components/employees/DesignationManagerModal";
 import {
-  labelStyle,
-  inputWrap,
-  iconStyle,
-  inputBase,
-  focusIn,
-  focusOut,
-} from "@/lib/ui";
+  normalizeEmployee,
+  type BankDetails,
+  type EmergencyContact,
+  type Employee,
+} from "@/types/employee";
+import type { Designation } from "@/types/designation";
 
 interface Props {
   open: boolean;
@@ -38,12 +51,83 @@ interface Props {
   refreshEmployees: () => void;
 }
 
-const initialErrors = {
-  name: "",
-  email: "",
-  phone: "",
-  password: "",
-};
+interface DepartmentOption {
+  id?: string;
+  name: string;
+}
+
+type FormErrors = Partial<
+  Record<
+    "name" | "email" | "phone" | "cnic" | "department" | "designation" | "employmentType" | "password",
+    string
+  >
+>;
+
+function Section({
+  title,
+  description,
+  icon,
+  children,
+}: {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-4 sm:p-5">
+      <header className="mb-4 flex items-start gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+          {icon}
+        </span>
+        <div>
+          <h3 className="text-sm font-bold text-[var(--color-text-primary)]">
+            {title}
+          </h3>
+          <p className="text-xs text-[var(--color-text-muted)]">{description}</p>
+        </div>
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  required,
+  error,
+  wide,
+  children,
+}: {
+  label: string;
+  icon?: ReactNode;
+  required?: boolean;
+  error?: string;
+  wide?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <label className={`block min-w-0 ${wide ? "sm:col-span-2" : ""}`}>
+      <span className="mb-1.5 block text-xs font-bold text-[var(--color-text-secondary)]">
+        {label} {required && <span className="text-red-500">*</span>}
+      </span>
+      <span className="relative block">
+        {icon && (
+          <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[var(--color-text-muted)]">
+            {icon}
+          </span>
+        )}
+        {children}
+      </span>
+      {error && <span className="mt-1 block text-xs text-red-600">{error}</span>}
+    </label>
+  );
+}
+
+const controlClass =
+  "form-input min-h-11 w-full bg-[var(--color-bg-surface-alt)] text-[var(--color-text-primary)]";
+const iconControlClass = `${controlClass} pl-10`;
 
 export default function EmployeeModal({
   open,
@@ -51,726 +135,756 @@ export default function EmployeeModal({
   employee,
   refreshEmployees,
 }: Props) {
-  const isEdit = !!employee.id;
-  const hadLoginBefore = !!employee.userId;
-
-  const [form, setForm] = useState<Employee>(employee);
+  const isEdit = Boolean(employee.id);
+  const hadLoginBefore = Boolean(employee.userId);
+  const [form, setForm] = useState(() => normalizeEmployee(employee));
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState(initialErrors);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [saving, setSaving] = useState(false);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [designations, setDesignations] = useState<Designation[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [designationManagerOpen, setDesignationManagerOpen] = useState(false);
 
-  /* departments for dropdown */
-  const [departments, setDepartments] = useState<{ id?: string; name: string }[]>([]);
-  const [deptLoading, setDeptLoading] = useState(false);
+  const loadOptions = useCallback(async () => {
+    setOptionsLoading(true);
+    try {
+      const [departmentsResponse, designationsResponse] = await Promise.all([
+        fetch("/api/departments/list"),
+        fetch("/api/designations/list"),
+      ]);
+      const [departmentData, designationData] = await Promise.all([
+        departmentsResponse.json(),
+        designationsResponse.json(),
+      ]);
+
+      if (!departmentsResponse.ok) {
+        throw new Error(departmentData.message || "Could not load departments.");
+      }
+      if (!designationsResponse.ok) {
+        throw new Error(
+          designationData.message || "Could not load designations."
+        );
+      }
+
+      setDepartments(Array.isArray(departmentData) ? departmentData : []);
+      setDesignations(Array.isArray(designationData) ? designationData : []);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not load employee form options."
+      );
+    } finally {
+      setOptionsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    setForm(employee);
+    setForm(normalizeEmployee(employee));
     setPassword("");
     setShowPassword(false);
-    setErrors(initialErrors);
-  }, [employee]);
+    setErrors({});
+  }, [employee, open]);
 
-  /* fetch departments whenever the modal opens */
+  useEffect(() => {
+    if (open) void loadOptions();
+  }, [loadOptions, open]);
+
   useEffect(() => {
     if (!open) return;
-    setDeptLoading(true);
-    fetch("/api/departments/list")
-      .then((r) => r.json())
-      .then((data) => setDepartments(Array.isArray(data) ? data : []))
-      .catch(() => setDepartments([]))
-      .finally(() => setDeptLoading(false));
-  }, [open]);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !designationManagerOpen) onClose();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [designationManagerOpen, onClose, open]);
+
+  const availableDesignations = useMemo(
+    () =>
+      designations.filter(
+        (designation) =>
+          designation.isActive || designation.name === form.designation
+      ),
+    [designations, form.designation]
+  );
 
   if (!open) return null;
 
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) {
-    const { name, value, type } = e.target;
+  const setValue = (
+    name: keyof Employee,
+    value: Employee[keyof Employee]
+  ) => {
+    setForm((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
+  };
 
-    if (type === "checkbox") {
-      setForm((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked,
-      }));
-    } else {
-      setForm((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+  const setBankValue = (name: keyof BankDetails, value: string) => {
+    setForm((current) => ({
+      ...current,
+      bankDetails: { ...current.bankDetails, [name]: value },
+    }));
+  };
+
+  const setEmergencyValue = (
+    name: keyof EmergencyContact,
+    value: string
+  ) => {
+    setForm((current) => ({
+      ...current,
+      emergencyContact: { ...current.emergencyContact, [name]: value },
+    }));
+  };
+
+  const validate = () => {
+    const nextErrors: FormErrors = {};
+    if (!form.name.trim()) nextErrors.name = "Employee name is required.";
+    if (!form.cnic.trim()) nextErrors.cnic = "CNIC is required.";
+    if (!form.phone.trim()) nextErrors.phone = "Phone is required.";
+    if (!form.email.trim()) nextErrors.email = "Email is required.";
+    if (!form.department) nextErrors.department = "Department is required.";
+    if (!form.designation) nextErrors.designation = "Designation is required.";
+    if (!form.employmentType) {
+      nextErrors.employmentType = "Employment type is required.";
     }
-  }
-
-  function validate() {
-    const temp = { ...initialErrors };
-    let valid = true;
-
-    if (!form.name.trim()) {
-      temp.name = "Employee name is required";
-      valid = false;
+    if (form.isLogin && !hadLoginBefore && password.trim().length < 6) {
+      nextErrors.password = "Enter a password of at least 6 characters.";
     }
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
-    if (!form.email.trim()) {
-      temp.email = "Email is required";
-      valid = false;
-    }
-
-    if (!form.phone.trim()) {
-      temp.phone = "Phone number is required";
-      valid = false;
-    }
-
-    if (form.isLogin && !hadLoginBefore && !password.trim()) {
-      temp.password = "Password is required to set up login access";
-      valid = false;
-    }
-
-    setErrors(temp);
-
-    return valid;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!validate()) return;
 
-    setLoading(true);
-
+    setSaving(true);
     try {
-      const url = form.id
-        ? "/api/employees/update"
-        : "/api/employees/create";
-
-      const method = form.id ? "PUT" : "POST";
-
-      const body = {
-        ...form,
-        ...(password.trim() ? { password: password.trim() } : {}),
-      };
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
+      const response = await fetch(
+        form.id ? "/api/employees/update" : "/api/employees/create",
+        {
+          method: form.id ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...form,
+            ...(password.trim() ? { password: password.trim() } : {}),
+          }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
         throw new Error(data.message || "Failed to save employee.");
       }
-
-      toast.success(
-        isEdit
-          ? "Employee updated successfully!"
-          : "Employee created successfully!"
-      );
-
-      refreshEmployees();
-
+      toast.success(data.message);
+      await refreshEmployees();
       onClose();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save employee.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save employee."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    setLoading(false);
-  }
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-6 backdrop-blur-sm animate-fadeIn"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <>
       <div
-        className="animate-slideUp w-full max-w-[640px] max-h-[95vh] overflow-y-auto rounded-[1.25rem] bg-[var(--color-bg-surface)] shadow-[0_32px_80px_rgba(0,0,0,0.18)]"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-2 backdrop-blur-sm sm:p-5"
+        onClick={(event) => event.target === event.currentTarget && onClose()}
       >
-        <div className="flex items-start justify-between gap-4 rounded-t-[1.25rem] bg-[var(--gradient-brand)] px-8 pb-6 pt-7">
-          <div>
-            <h2
-              style={{
-                fontSize: "1.2rem",
-                fontWeight: 800,
-                color: "#fff",
-                margin: 0,
-              }}
-            >
-              {isEdit ? "Edit Employee" : "Add New Employee"}
-            </h2>
-            <p
-              style={{
-                fontSize: "0.8125rem",
-                color: "#c4b5fd",
-                marginTop: "0.375rem",
-              }}
-            >
-              {isEdit
-                ? "Update the employee's details and status"
-                : "Fill in the details to create a new employee"}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              width: "2.25rem",
-              height: "2.25rem",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "0.625rem",
-              border: "none",
-              cursor: "pointer",
-              background: "rgba(255,255,255,0.12)",
-              color: "#c4b5fd",
-            }}
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            padding: "1.75rem 2rem 2rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
-          }}
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="employee-form-title"
+          className="flex max-h-[96dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[var(--color-bg-surface-alt)] shadow-2xl"
         >
-          {/* Personal Information */}
-          <div>
-            <h3
-              style={{
-                fontSize: "0.8125rem",
-                fontWeight: 700,
-                color: "#6366f1",
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                margin: "0 0 1rem",
-              }}
-            >
-              Personal Information
-            </h3>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "1rem",
-              }}
-            >
-              <div>
-                <label style={labelStyle}>
-                  Employee Name <span style={{ color: "#ef4444" }}>*</span>
-                </label>
-                <div style={inputWrap}>
-                  <User size={14} style={iconStyle} />
-                  <input
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    placeholder="John Doe"
-                    required
-                    style={inputBase}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  />
-                </div>
-                {errors.name && (
-                  <p
-                    style={{
-                      color: "#dc2626",
-                      fontSize: "0.75rem",
-                      marginTop: "0.375rem",
-                    }}
-                  >
-                    {errors.name}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label style={labelStyle}>
-                  Email <span style={{ color: "#ef4444" }}>*</span>
-                </label>
-                <div style={inputWrap}>
-                  <Mail size={14} style={iconStyle} />
-                  <input
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="john@company.com"
-                    required
-                    style={inputBase}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  />
-                </div>
-                {errors.email && (
-                  <p
-                    style={{
-                      color: "#dc2626",
-                      fontSize: "0.75rem",
-                      marginTop: "0.375rem",
-                    }}
-                  >
-                    {errors.email}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label style={labelStyle}>
-                  Phone <span style={{ color: "#ef4444" }}>*</span>
-                </label>
-                <div style={inputWrap}>
-                  <Phone size={14} style={iconStyle} />
-                  <input
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="+1 555 000 1234"
-                    required
-                    style={inputBase}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  />
-                </div>
-                {errors.phone && (
-                  <p
-                    style={{
-                      color: "#dc2626",
-                      fontSize: "0.75rem",
-                      marginTop: "0.375rem",
-                    }}
-                  >
-                    {errors.phone}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label style={labelStyle}>Gender</label>
-                <div style={inputWrap}>
-                  <Users size={14} style={iconStyle} />
-                  <select
-                    name="gender"
-                    value={form.gender}
-                    onChange={handleChange}
-                    style={{
-                      ...inputBase,
-                      paddingLeft: "2.5rem",
-                      paddingRight: "2.5rem",
-                      appearance: "none",
-                      cursor: "pointer",
-                    }}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  >
-                    <option value="">Select Gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      right: "0.875rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      pointerEvents: "none",
-                      color: "#94a3b8",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div style={{ height: "1px", background: "#f0f2f8" }} />
-
-          {/* Employment Information */}
-          <div>
-            <h3
-              style={{
-                fontSize: "0.8125rem",
-                fontWeight: 700,
-                color: "#6366f1",
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                margin: "0 0 1rem",
-              }}
-            >
-              Employment Information
-            </h3>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "1rem",
-              }}
-            >
-              <div>
-                <label style={labelStyle}>Department</label>
-                <div style={inputWrap}>
-                  <Building2 size={14} style={iconStyle} />
-                  <select
-                    name="department"
-                    value={form.department}
-                    onChange={handleChange}
-                    style={{
-                      ...inputBase,
-                      paddingLeft: "2.5rem",
-                      paddingRight: "2.5rem",
-                      appearance: "none",
-                      cursor: "pointer",
-                    }}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  >
-                    <option value="">
-                      {deptLoading ? "Loading departments…" : "Select Department"}
-                    </option>
-                    {departments.map((dept) => (
-                      <option key={dept.id} value={dept.name}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      right: "0.875rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      pointerEvents: "none",
-                      color: "#94a3b8",
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={labelStyle}>Designation</label>
-                <div style={inputWrap}>
-                  <Briefcase size={14} style={iconStyle} />
-                  <input
-                    name="designation"
-                    value={form.designation}
-                    onChange={handleChange}
-                    placeholder="e.g. Software Engineer"
-                    style={inputBase}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={labelStyle}>Employment Type</label>
-                <div style={inputWrap}>
-                  <Briefcase size={14} style={iconStyle} />
-                  <select
-                    name="employmentType"
-                    value={form.employmentType}
-                    onChange={handleChange}
-                    style={{
-                      ...inputBase,
-                      paddingLeft: "2.5rem",
-                      paddingRight: "2.5rem",
-                      appearance: "none",
-                      cursor: "pointer",
-                    }}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  >
-                    <option value="">Select Type</option>
-                    <option>Full Time</option>
-                    <option>Part Time</option>
-                    <option>Intern</option>
-                    <option>Contract</option>
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      right: "0.875rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      pointerEvents: "none",
-                      color: "#94a3b8",
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={labelStyle}>Basic Salary</label>
-                <div style={inputWrap}>
-                  <DollarSign size={14} style={iconStyle} />
-                  <input
-                    type="number"
-                    name="basicSalary"
-                    value={form.basicSalary}
-                    onChange={handleChange}
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                    style={inputBase}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Toggles */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.875rem 1rem",
-                  background: "#f8faff",
-                  border: "1.5px solid #e2e8f0",
-                  borderRadius: "0.625rem",
-                  cursor: "pointer",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  name="isLogin"
-                  checked={form.isLogin}
-                  onChange={handleChange}
-                  style={{
-                    width: "1rem",
-                    height: "1rem",
-                    accentColor: "#6366f1",
-                    cursor: "pointer",
-                  }}
-                />
-                <ToggleLeft size={16} color="#6366f1" />
-                <div>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      fontWeight: 600,
-                      color: "#1e293b",
-                      margin: 0,
-                    }}
-                  >
-                    Has Login
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#94a3b8",
-                      margin: 0,
-                    }}
-                  >
-                    Can access the system
-                  </p>
-                </div>
-              </label>
-
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.875rem 1rem",
-                  background: "#f8faff",
-                  border: "1.5px solid #e2e8f0",
-                  borderRadius: "0.625rem",
-                  cursor: "pointer",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={handleChange}
-                  style={{
-                    width: "1rem",
-                    height: "1rem",
-                    accentColor: "#6366f1",
-                    cursor: "pointer",
-                  }}
-                />
-                <ToggleLeft size={16} color="#6366f1" />
-                <div>
-                  <p
-                    style={{
-                      fontSize: "0.875rem",
-                      fontWeight: 600,
-                      color: "#1e293b",
-                      margin: 0,
-                    }}
-                  >
-                    Active
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#94a3b8",
-                      margin: 0,
-                    }}
-                  >
-                    Employee is active
-                  </p>
-                </div>
-              </label>
-            </div>
-
-            {/* Login credentials */}
-            {form.isLogin && (
-              <div style={{ marginTop: "0.875rem" }}>
-                <label style={labelStyle}>
-                  Password{" "}
-                  {hadLoginBefore ? (
-                    <span
-                      style={{
-                        color: "#94a3b8",
-                        fontWeight: 500,
-                        textTransform: "none",
-                        letterSpacing: 0,
-                      }}
-                    >
-                      (leave blank to keep current)
-                    </span>
-                  ) : (
-                    <span style={{ color: "#ef4444" }}>*</span>
-                  )}
-                </label>
-                <div style={inputWrap}>
-                  <Lock size={14} style={iconStyle} />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={hadLoginBefore ? "••••••••" : "Min. 6 characters"}
-                    required={!hadLoginBefore}
-                    style={{ ...inputBase, paddingRight: "2.5rem" }}
-                    onFocus={focusIn}
-                    onBlur={focusOut}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((p) => !p)}
-                    style={{
-                      position: "absolute",
-                      right: "0.75rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#94a3b8",
-                      padding: 0,
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p style={{ color: "#dc2626", fontSize: "0.75rem", marginTop: "0.375rem" }}>
-                    {errors.password}
-                  </p>
-                )}
-                <p style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.375rem" }}>
-                  This creates a real login account using the employee's email above, with the{" "}
-                  <strong>Employee</strong> role.
+          <header className="flex shrink-0 items-start justify-between gap-4 bg-[var(--gradient-brand)] px-4 py-4 text-white sm:px-7 sm:py-5">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/15">
+                <CircleUserRound size={23} />
+              </span>
+              <div className="min-w-0">
+                <h2
+                  id="employee-form-title"
+                  className="truncate text-lg font-bold sm:text-xl"
+                >
+                  {isEdit ? "Edit Employee Profile" : "Create Employee Profile"}
+                </h2>
+                <p className="text-xs text-white/75 sm:text-sm">
+                  Personal, employment, payroll, and contact information
                 </p>
               </div>
-            )}
-
-            {!form.isLogin && hadLoginBefore && (
-              <div
-                style={{
-                  marginTop: "0.875rem",
-                  padding: "0.75rem 1rem",
-                  background: "rgba(239,68,68,0.05)",
-                  border: "1px solid rgba(239,68,68,0.15)",
-                  borderRadius: "0.625rem",
-                }}
-              >
-                <p style={{ fontSize: "0.8125rem", color: "#dc2626", fontWeight: 600, margin: 0 }}>
-                  ⚠️ Saving will permanently remove this employee's login account.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div style={{ display: "flex", gap: "0.75rem" }}>
+            </div>
             <button
               type="button"
               onClick={onClose}
-              style={{
-                flex: 1,
-                padding: "0.8125rem 1rem",
-                fontSize: "0.9rem",
-                fontWeight: 600,
-                borderRadius: "0.625rem",
-                border: "1.5px solid var(--color-border)",
-                background: "var(--color-bg-surface-alt)",
-                color: "var(--color-text-secondary)",
-                cursor: "pointer",
-              }}
+              className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/15 transition hover:bg-white/25"
+              aria-label="Close employee form"
             >
-              Cancel
+              <X size={18} />
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: "0.8125rem 1rem",
-                fontSize: "0.9rem",
-                fontWeight: 700,
-                borderRadius: "0.625rem",
-                border: "none",
-                background: loading
-                  ? "#818cf8"
-                  : "linear-gradient(135deg, #6366f1, #4f46e5)",
-                color: "#fff",
-                cursor: loading ? "not-allowed" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-                boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
-                opacity: loading ? 0.75 : 1,
-              }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={15} className="animate-spin" /> Saving…
-                </>
-              ) : isEdit ? (
-                "Update Employee"
-              ) : (
-                <>
-                  <Plus size={15} /> Create Employee
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+          </header>
+
+          <form
+            onSubmit={submit}
+            className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5"
+          >
+            <div className="grid gap-4">
+              <Section
+                title="Employee profile"
+                description="Identity and primary contact details"
+                icon={<User size={18} />}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Employee ID" icon={<BadgeCheck size={16} />}>
+                    <input
+                      className={`${iconControlClass} cursor-not-allowed opacity-75`}
+                      value={form.employeeId || "Auto-generated after save"}
+                      readOnly
+                    />
+                  </Field>
+                  <Field
+                    label="Name"
+                    icon={<User size={16} />}
+                    required
+                    error={errors.name}
+                  >
+                    <input
+                      className={iconControlClass}
+                      value={form.name}
+                      onChange={(event) => setValue("name", event.target.value)}
+                      placeholder="Employee full name"
+                      autoComplete="name"
+                    />
+                  </Field>
+                  <Field
+                    label="CNIC"
+                    icon={<IdCard size={16} />}
+                    required
+                    error={errors.cnic}
+                  >
+                    <input
+                      className={iconControlClass}
+                      value={form.cnic}
+                      onChange={(event) => setValue("cnic", event.target.value)}
+                      placeholder="00000-0000000-0"
+                    />
+                  </Field>
+                  <Field
+                    label="Phone"
+                    icon={<Phone size={16} />}
+                    required
+                    error={errors.phone}
+                  >
+                    <input
+                      className={iconControlClass}
+                      value={form.phone}
+                      onChange={(event) => setValue("phone", event.target.value)}
+                      placeholder="+92 300 0000000"
+                      autoComplete="tel"
+                    />
+                  </Field>
+                  <Field
+                    label="Email"
+                    icon={<Mail size={16} />}
+                    required
+                    error={errors.email}
+                  >
+                    <input
+                      className={iconControlClass}
+                      type="email"
+                      value={form.email}
+                      onChange={(event) => setValue("email", event.target.value)}
+                      placeholder="name@company.com"
+                      autoComplete="email"
+                    />
+                  </Field>
+                  <Field
+                    label="Gender"
+                    icon={<Users size={16} />}
+                  >
+                    <select
+                      className={`${iconControlClass} appearance-none pr-10`}
+                      value={form.gender}
+                      onChange={(event) => setValue("gender", event.target.value)}
+                    >
+                      <option value="">Select gender</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  </Field>
+                  <Field label="Profile photo URL" icon={<Link2 size={16} />}>
+                    <input
+                      className={iconControlClass}
+                      type="url"
+                      value={form.profilePhotoUrl}
+                      onChange={(event) =>
+                        setValue("profilePhotoUrl", event.target.value)
+                      }
+                      placeholder="https://example.com/photo.jpg"
+                    />
+                  </Field>
+                  <Field
+                    label="Address"
+                    icon={<MapPin size={16} />}
+                    wide
+                  >
+                    <textarea
+                      className={`${iconControlClass} min-h-24 resize-y pt-3`}
+                      value={form.address}
+                      onChange={(event) =>
+                        setValue("address", event.target.value)
+                      }
+                      placeholder="Complete residential address"
+                    />
+                  </Field>
+                </div>
+              </Section>
+
+              <Section
+                title="Employment information"
+                description="Department, role, joining, and compensation"
+                icon={<BriefcaseBusiness size={18} />}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label="Department"
+                    icon={<Building2 size={16} />}
+                    required
+                    error={errors.department}
+                  >
+                    <select
+                      className={`${iconControlClass} appearance-none pr-10`}
+                      value={form.department}
+                      onChange={(event) =>
+                        setValue("department", event.target.value)
+                      }
+                      disabled={optionsLoading}
+                    >
+                      <option value="">
+                        {optionsLoading
+                          ? "Loading departments..."
+                          : "Select department"}
+                      </option>
+                      {departments.map((department) => (
+                        <option
+                          key={department.id || department.name}
+                          value={department.name}
+                        >
+                          {department.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  </Field>
+
+                  <Field
+                    label="Designation"
+                    required
+                    error={errors.designation}
+                  >
+                    <div className="flex gap-2">
+                      <span className="relative min-w-0 flex-1">
+                        <BriefcaseBusiness className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[var(--color-text-muted)]" size={16} />
+                        <select
+                          className={`${iconControlClass} appearance-none pr-10`}
+                          value={form.designation}
+                          onChange={(event) =>
+                            setValue("designation", event.target.value)
+                          }
+                          disabled={optionsLoading}
+                        >
+                          <option value="">
+                            {optionsLoading
+                              ? "Loading designations..."
+                              : "Select designation"}
+                          </option>
+                          {form.designation &&
+                            !availableDesignations.some(
+                              (designation) =>
+                                designation.name === form.designation
+                            ) && (
+                              <option value={form.designation}>
+                                {form.designation} (Legacy)
+                              </option>
+                            )}
+                          {availableDesignations.map((designation) => (
+                            <option
+                              key={designation.id || designation.name}
+                              value={designation.name}
+                            >
+                              {designation.name}
+                              {!designation.isActive ? " (Inactive)" : ""}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-secondary shrink-0 px-3"
+                        onClick={() => setDesignationManagerOpen(true)}
+                        title="Manage designations"
+                      >
+                        <Plus size={16} />
+                        <span className="hidden lg:inline">Manage</span>
+                      </button>
+                    </div>
+                  </Field>
+
+                  <Field
+                    label="Qualification"
+                    icon={<GraduationCap size={16} />}
+                  >
+                    <input
+                      className={iconControlClass}
+                      value={form.qualification}
+                      onChange={(event) =>
+                        setValue("qualification", event.target.value)
+                      }
+                      placeholder="e.g. BSc Computer Science"
+                    />
+                  </Field>
+                  <Field
+                    label="Joining date"
+                    icon={<CalendarDays size={16} />}
+                  >
+                    <input
+                      className={iconControlClass}
+                      type="date"
+                      value={form.joiningDate}
+                      onChange={(event) =>
+                        setValue("joiningDate", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field
+                    label="Employment type"
+                    icon={<BriefcaseBusiness size={16} />}
+                    required
+                    error={errors.employmentType}
+                  >
+                    <select
+                      className={`${iconControlClass} appearance-none pr-10`}
+                      value={form.employmentType}
+                      onChange={(event) =>
+                        setValue("employmentType", event.target.value)
+                      }
+                    >
+                      <option value="">Select type</option>
+                      <option>Full Time</option>
+                      <option>Part Time</option>
+                      <option>Contract</option>
+                      <option>Intern</option>
+                      <option>Probation</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  </Field>
+                  <Field label="Salary" icon={<Banknote size={16} />}>
+                    <input
+                      className={iconControlClass}
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.basicSalary}
+                      onChange={(event) =>
+                        setValue(
+                          "basicSalary",
+                          event.target.value === ""
+                            ? ""
+                            : Number(event.target.value)
+                        )
+                      }
+                      placeholder="0.00"
+                    />
+                  </Field>
+                  <Field label="Status" icon={<BadgeCheck size={16} />}>
+                    <select
+                      className={`${iconControlClass} appearance-none pr-10`}
+                      value={form.isActive ? "active" : "inactive"}
+                      onChange={(event) =>
+                        setValue("isActive", event.target.value === "active")
+                      }
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  </Field>
+                </div>
+              </Section>
+
+              <Section
+                title="Bank details"
+                description="Account information used for payroll"
+                icon={<Banknote size={18} />}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Bank name">
+                    <input
+                      className={controlClass}
+                      value={form.bankDetails.bankName}
+                      onChange={(event) =>
+                        setBankValue("bankName", event.target.value)
+                      }
+                      placeholder="Bank name"
+                    />
+                  </Field>
+                  <Field label="Account title">
+                    <input
+                      className={controlClass}
+                      value={form.bankDetails.accountTitle}
+                      onChange={(event) =>
+                        setBankValue("accountTitle", event.target.value)
+                      }
+                      placeholder="Account holder name"
+                    />
+                  </Field>
+                  <Field label="Account number">
+                    <input
+                      className={controlClass}
+                      value={form.bankDetails.accountNumber}
+                      onChange={(event) =>
+                        setBankValue("accountNumber", event.target.value)
+                      }
+                      placeholder="Account number"
+                    />
+                  </Field>
+                  <Field label="IBAN">
+                    <input
+                      className={controlClass}
+                      value={form.bankDetails.iban}
+                      onChange={(event) =>
+                        setBankValue("iban", event.target.value.toUpperCase())
+                      }
+                      placeholder="PK00 BANK 0000 0000 0000 0000"
+                    />
+                  </Field>
+                </div>
+              </Section>
+
+              <Section
+                title="Emergency contact"
+                description="Person to contact in an emergency"
+                icon={<ContactRound size={18} />}
+              >
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Field label="Contact name">
+                    <input
+                      className={controlClass}
+                      value={form.emergencyContact.name}
+                      onChange={(event) =>
+                        setEmergencyValue("name", event.target.value)
+                      }
+                      placeholder="Full name"
+                    />
+                  </Field>
+                  <Field label="Relationship">
+                    <input
+                      className={controlClass}
+                      value={form.emergencyContact.relationship}
+                      onChange={(event) =>
+                        setEmergencyValue("relationship", event.target.value)
+                      }
+                      placeholder="e.g. Spouse"
+                    />
+                  </Field>
+                  <Field label="Phone">
+                    <input
+                      className={controlClass}
+                      value={form.emergencyContact.phone}
+                      onChange={(event) =>
+                        setEmergencyValue("phone", event.target.value)
+                      }
+                      placeholder="+92 300 0000000"
+                    />
+                  </Field>
+                </div>
+              </Section>
+
+              <Section
+                title="Documents"
+                description="Add document names and secure links"
+                icon={<FileText size={18} />}
+              >
+                <div className="space-y-3">
+                  {form.documents.map((document, index) => (
+                    <div
+                      key={`${index}-${document.name}`}
+                      className="grid gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface-alt)] p-3 sm:grid-cols-[0.8fr_1.4fr_auto]"
+                    >
+                      <input
+                        className={controlClass}
+                        value={document.name}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            documents: current.documents.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, name: event.target.value }
+                                : item
+                            ),
+                          }))
+                        }
+                        placeholder="Document name"
+                        aria-label={`Document ${index + 1} name`}
+                      />
+                      <input
+                        className={controlClass}
+                        type="url"
+                        value={document.url}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            documents: current.documents.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, url: event.target.value }
+                                : item
+                            ),
+                          }))
+                        }
+                        placeholder="https://..."
+                        aria-label={`Document ${index + 1} URL`}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-icon btn-secondary text-red-600"
+                        onClick={() =>
+                          setForm((current) => ({
+                            ...current,
+                            documents: current.documents.filter(
+                              (_, itemIndex) => itemIndex !== index
+                            ),
+                          }))
+                        }
+                        aria-label={`Remove document ${index + 1}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() =>
+                      setForm((current) => ({
+                        ...current,
+                        documents: [
+                          ...current.documents,
+                          { name: "", url: "" },
+                        ],
+                      }))
+                    }
+                  >
+                    <Plus size={15} /> Add document
+                  </button>
+                </div>
+              </Section>
+
+              <Section
+                title="System access"
+                description="Keep the existing employee login option"
+                icon={<Lock size={18} />}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface-alt)] p-4">
+                    <input
+                      type="checkbox"
+                      checked={form.isLogin}
+                      onChange={(event) =>
+                        setValue("isLogin", event.target.checked)
+                      }
+                      className="size-4 accent-indigo-600"
+                    />
+                    <span>
+                      <span className="block text-sm font-bold text-[var(--color-text-primary)]">
+                        Has login
+                      </span>
+                      <span className="block text-xs text-[var(--color-text-muted)]">
+                        Allow this employee to access the app
+                      </span>
+                    </span>
+                  </label>
+
+                  {form.isLogin && (
+                    <Field
+                      label={hadLoginBefore ? "New password (optional)" : "Password"}
+                      icon={<Lock size={16} />}
+                      required={!hadLoginBefore}
+                      error={errors.password}
+                    >
+                      <input
+                        className={`${iconControlClass} pr-10`}
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(event) => {
+                          setPassword(event.target.value);
+                          setErrors((current) => ({
+                            ...current,
+                            password: undefined,
+                          }));
+                        }}
+                        minLength={6}
+                        autoComplete="new-password"
+                        placeholder={
+                          hadLoginBefore
+                            ? "Leave blank to keep current password"
+                            : "Minimum 6 characters"
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]"
+                        onClick={() => setShowPassword((current) => !current)}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </Field>
+                  )}
+                </div>
+              </Section>
+            </div>
+
+            <footer className="sticky bottom-0 z-10 mt-4 flex flex-wrap justify-end gap-2 border-t border-[var(--color-border)] bg-[var(--color-bg-surface-alt)] py-4">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onClose}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : isEdit ? (
+                  <Save size={16} />
+                ) : (
+                  <Plus size={16} />
+                )}
+                {saving
+                  ? "Saving..."
+                  : isEdit
+                    ? "Save employee"
+                    : "Create employee"}
+              </button>
+            </footer>
+          </form>
+        </section>
       </div>
-    </div>
+
+      <DesignationManagerModal
+        open={designationManagerOpen}
+        onClose={() => setDesignationManagerOpen(false)}
+        onChanged={() => void loadOptions()}
+      />
+    </>
   );
 }

@@ -6,7 +6,7 @@ import { datesInRange } from "@/lib/leave";
 export async function POST(req: NextRequest) {
   try {
     const { employeeId, employeeName, userId, leaveType, startDate, endDate, reason } = await req.json();
-    if (!employeeId || !employeeName || !userId || !leaveType || !startDate || !endDate || !reason?.trim()) {
+    if (!employeeId || !employeeName || !leaveType || !startDate || !endDate || !reason?.trim()) {
       return NextResponse.json({ message: "All leave request fields are required." }, { status: 400 });
     }
     const dates = datesInRange(startDate, endDate);
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     if (overlaps) return NextResponse.json({ message: "A leave request already overlaps these dates." }, { status: 409 });
 
     const ref = await adminDb.collection("leaves").add({
-      employeeId, employeeName, userId, leaveType, startDate, endDate,
+      employeeId, employeeName, userId: userId || "", leaveType, startDate, endDate,
       reason: reason.trim(), status: "Pending",
       createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
     });

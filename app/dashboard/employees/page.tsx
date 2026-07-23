@@ -4,36 +4,23 @@ import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import EmployeeTable from "@/components/employees/EmployeeTable";
 import EmployeeModal from "@/components/employees/EmployeeModal";
+import EmployeeDetailsModal from "@/components/employees/EmployeeDetailsModal";
+import EmployeeLeaveRequestModal from "@/components/employees/EmployeeLeaveRequestModal";
 import DeleteEmployeeModal from "@/components/employees/DeleteEmployeeModal";
 import SalaryModal from "@/components/salary/SalaryModal";
 import SalaryHistoryModal from "@/components/salary/SalaryHistoryModal";
 
-import { Employee } from "@/types/employee";
+import {
+  createEmptyEmployee,
+  normalizeEmployee,
+  type Employee,
+} from "@/types/employee";
 import { SalaryRecord } from "@/types/salary";
 import { emptySalaryFor } from "@/lib/salary";
 import { inputBase, iconStyle, inputWrap, focusIn, focusOut } from "@/lib/ui";
 
 export default function EmployeesPage() {
-  const emptyEmployee: Employee = {
-    employeeId: "",
-    userId: "",
-    isLogin: false,
-
-    name: "",
-    email: "",
-    phone: "",
-
-    department: "",
-    designation: "",
-
-    employmentType: "",
-
-    gender: "",
-
-    basicSalary: "",
-
-    isActive: true,
-  };
+  const emptyEmployee = createEmptyEmployee();
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +34,8 @@ export default function EmployeesPage() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [detailsEmployee, setDetailsEmployee] = useState<Employee | null>(null);
+  const [leaveEmployee, setLeaveEmployee] = useState<Employee | null>(null);
 
   const [selectedEmployee, setSelectedEmployee] =
     useState<Employee>(emptyEmployee);
@@ -65,7 +54,11 @@ export default function EmployeesPage() {
 
       const data = await res.json();
 
-      setEmployees(data);
+      setEmployees(
+        Array.isArray(data)
+          ? data.map((employee) => normalizeEmployee(employee))
+          : []
+      );
     } catch (error) {
       console.error(error);
     } finally {
@@ -87,6 +80,10 @@ export default function EmployeesPage() {
     setSelectedEmployee(employee);
 
     setModalOpen(true);
+  }
+
+  function handleView(employee: Employee) {
+    setDetailsEmployee(employee);
   }
 
   function handleDelete(employee: Employee) {
@@ -113,6 +110,7 @@ export default function EmployeesPage() {
         employee.name.toLowerCase().includes(keyword) ||
         employee.email.toLowerCase().includes(keyword) ||
         employee.phone.toLowerCase().includes(keyword) ||
+        employee.cnic.toLowerCase().includes(keyword) ||
         employee.employeeId.toLowerCase().includes(keyword);
 
       const matchesDepartment =
@@ -380,6 +378,7 @@ export default function EmployeesPage() {
       <EmployeeTable
         employees={filteredEmployees}
         loading={loading}
+        onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onAddSalary={handleAddSalary}
@@ -392,6 +391,18 @@ export default function EmployeesPage() {
         onClose={() => setModalOpen(false)}
         employee={selectedEmployee}
         refreshEmployees={fetchEmployees}
+      />
+
+      <EmployeeDetailsModal
+        employee={detailsEmployee}
+        onClose={() => setDetailsEmployee(null)}
+        onViewPayslips={handleViewSalaryHistory}
+        onCreateLeave={setLeaveEmployee}
+      />
+
+      <EmployeeLeaveRequestModal
+        employee={leaveEmployee}
+        onClose={() => setLeaveEmployee(null)}
       />
 
       {/* Delete Modal */}

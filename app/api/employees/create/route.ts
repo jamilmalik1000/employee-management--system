@@ -9,6 +9,10 @@ function generateEmployeeId() {
   );
 }
 
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -16,14 +20,22 @@ export async function POST(req: NextRequest) {
     const {
       isLogin,
       password,
+      profilePhotoUrl,
       name,
+      cnic,
       email,
       phone,
+      address,
       department,
       designation,
+      qualification,
+      joiningDate,
       employmentType,
       gender,
       basicSalary,
+      bankDetails,
+      documents,
+      emergencyContact,
       isActive,
     } = body;
 
@@ -31,10 +43,10 @@ export async function POST(req: NextRequest) {
       !name ||
       !email ||
       !phone ||
+      !cnic ||
       !department ||
       !designation ||
-      !employmentType ||
-      !gender
+      !employmentType
     ) {
       return NextResponse.json(
         { message: "Please fill all required fields." },
@@ -66,6 +78,19 @@ export async function POST(req: NextRequest) {
     if (!phoneSnap.empty) {
       return NextResponse.json(
         { message: "Phone number already exists." },
+        { status: 400 }
+      );
+    }
+
+    const cnicSnap = await adminDb
+      .collection("employees")
+      .where("cnic", "==", String(cnic).trim())
+      .limit(1)
+      .get();
+
+    if (!cnicSnap.empty) {
+      return NextResponse.json(
+        { message: "CNIC already exists." },
         { status: 400 }
       );
     }
@@ -122,9 +147,9 @@ export async function POST(req: NextRequest) {
           isActive: isActive ?? true,
           createdAt: new Date(),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         return NextResponse.json(
-          { message: err.message || "Failed to create login account." },
+          { message: errorMessage(err, "Failed to create login account.") },
           { status: 400 }
         );
       }
@@ -139,21 +164,53 @@ export async function POST(req: NextRequest) {
 
       name,
 
+      profilePhotoUrl: String(profilePhotoUrl || "").trim(),
+
+      cnic: String(cnic || "").trim(),
+
       email,
 
       phone,
+
+      address: String(address || "").trim(),
 
       department,
 
       designation,
 
+      qualification: String(qualification || "").trim(),
+
+      joiningDate: String(joiningDate || ""),
+
       employmentType,
 
-      gender,
+      gender: String(gender || ""),
 
       basicSalary: Number(basicSalary) || 0,
 
-      isActive,
+      bankDetails: {
+        bankName: String(bankDetails?.bankName || "").trim(),
+        accountTitle: String(bankDetails?.accountTitle || "").trim(),
+        accountNumber: String(bankDetails?.accountNumber || "").trim(),
+        iban: String(bankDetails?.iban || "").trim(),
+      },
+
+      documents: Array.isArray(documents)
+        ? documents
+            .map((document) => ({
+              name: String(document?.name || "").trim(),
+              url: String(document?.url || "").trim(),
+            }))
+            .filter((document) => document.name || document.url)
+        : [],
+
+      emergencyContact: {
+        name: String(emergencyContact?.name || "").trim(),
+        relationship: String(emergencyContact?.relationship || "").trim(),
+        phone: String(emergencyContact?.phone || "").trim(),
+      },
+
+      isActive: isActive ?? true,
 
       createdAt: Timestamp.now(),
 

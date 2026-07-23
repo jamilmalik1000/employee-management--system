@@ -223,6 +223,27 @@ body {
   .record-details-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; overflow: visible !important; padding-inline: 0 !important; }
   .record-details-grid dt { color: #6b7280 !important; }
   .record-details-grid dd { color: #111827 !important; }
+
+  .employee-profile-print,
+  .employee-profile-print * { visibility: visible !important; }
+  .employee-profile-print {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #111827 !important;
+    print-color-adjust: exact;
+  }
+  .employee-profile-print > div { overflow: visible !important; }
+  .employee-profile-actions,
+  .employee-quick-actions,
+  .employee-profile-print header button { display: none !important; }
 }
 
 /* ── Scrollbar ── */
