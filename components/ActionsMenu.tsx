@@ -60,22 +60,22 @@ export default function ActionsMenu({ items, details }: { items: ActionMenuItem[
     : items;
 
   return <>
-    <button ref={buttonRef} onClick={toggle} title="Actions" aria-label="Open actions" aria-expanded={open} className={`grid size-8 place-items-center rounded-lg border text-slate-600 shadow-sm transition ${open ? "border-indigo-300 bg-indigo-50 text-indigo-600" : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"}`}>
+    <button ref={buttonRef} onClick={toggle} title="Actions" aria-label="Open actions" aria-expanded={open} className={`grid size-8 place-items-center rounded-lg border text-[var(--color-text-secondary)] shadow-sm transition ${open ? "border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]" : "border-[var(--color-border)] bg-[var(--color-bg-surface)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"}`}>
       <MoreVertical size={15} />
     </button>
     {open && typeof document !== "undefined" && createPortal(
-      <div ref={menuRef} role="menu" aria-label="Actions" className="fixed z-[100] max-h-[min(320px,70dvh)] w-[200px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_14px_35px_rgba(15,23,42,0.18)]" style={position}>
+      <div ref={menuRef} role="menu" aria-label="Actions" className="fixed z-[100] max-h-[min(320px,70dvh)] w-[200px] overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-1.5 shadow-[var(--shadow-lg)]" style={position}>
         {menuItems.map(({ label, icon: Icon, onClick, danger, disabled }, index) => (
           <Fragment key={`${label}-${index}`}>
-            {danger && index > 0 && <div className="my-1 border-t border-slate-100" />}
+            {danger && index > 0 && <div className="my-1 border-t border-[var(--color-border)]" />}
             <button
               type="button"
               role="menuitem"
               disabled={disabled}
               onClick={() => { setOpen(false); onClick(); }}
-              className={`flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium leading-5 transition disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"}`}
+              className={`flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium leading-5 transition disabled:cursor-not-allowed disabled:opacity-40 ${danger ? "text-red-500 hover:bg-red-500/10" : "text-[var(--color-text-primary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"}`}
             >
-              <Icon size={16} className={`shrink-0 ${danger ? "text-red-500" : "text-indigo-500"}`} />
+              <Icon size={16} className={`shrink-0 ${danger ? "text-red-500" : "text-[var(--color-primary)]"}`} />
               <span className="truncate">{label}</span>
             </button>
           </Fragment>

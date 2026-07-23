@@ -182,43 +182,13 @@ export default function EmployeeModal({
 
   return (
     <div
-      className="animate-fadeIn"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.55)",
-        backdropFilter: "blur(4px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 50,
-        padding: "1.5rem",
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-6 backdrop-blur-sm animate-fadeIn"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="animate-slideUp w-full"
-        style={{
-          maxWidth: "640px",
-          maxHeight: "95vh",
-          overflowY: "auto",
-          background: "#fff",
-          borderRadius: "1.25rem",
-          boxShadow: "0 32px 80px rgba(0,0,0,0.18)",
-        }}
+        className="animate-slideUp w-full max-w-[640px] max-h-[95vh] overflow-y-auto rounded-[1.25rem] bg-[var(--color-bg-surface)] shadow-[0_32px_80px_rgba(0,0,0,0.18)]"
       >
-        {/* Gradient header */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-            borderRadius: "1.25rem 1.25rem 0 0",
-            padding: "1.75rem 2rem 1.5rem",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: "1rem",
-          }}
-        >
+        <div className="flex items-start justify-between gap-4 rounded-t-[1.25rem] bg-[var(--gradient-brand)] px-8 pb-6 pt-7">
           <div>
             <h2
               style={{
@@ -565,14 +535,7 @@ export default function EmployeeModal({
             </div>
 
             {/* Toggles */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "0.75rem",
-                marginTop: "1rem",
-              }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               <label
                 style={{
                   display: "flex",
@@ -762,9 +725,9 @@ export default function EmployeeModal({
                 fontSize: "0.9rem",
                 fontWeight: 600,
                 borderRadius: "0.625rem",
-                border: "1.5px solid #e2e8f0",
-                background: "#f8faff",
-                color: "#475569",
+                border: "1.5px solid var(--color-border)",
+                background: "var(--color-bg-surface-alt)",
+                color: "var(--color-text-secondary)",
                 cursor: "pointer",
               }}
             >
